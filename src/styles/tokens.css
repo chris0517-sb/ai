@@ -1,0 +1,53 @@
+/* ─────────────────────────────────────────────────────────────
+   設計 token：全站唯一可以寫色碼的地方（規格 §2、§9-10）。
+   顏色照抄 JARVIS 原始碼 C:\Users\USER\.jarvis\scripts\jarvis_ui.py:80-107（PySide6），不准改。
+   元件裡一律引用這裡的 var(--…)，或 Tailwind 的 bg-speak / text-text-2 這類對應 class。
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --bg: #04060A;                    /* STAGE_BG = QColor(4, 6, 10) */
+  --card: rgba(14, 18, 26, .67);    /* CARD_BG = QColor(14, 18, 26, 170) */
+  --card-top: rgba(255, 255, 255, .055); /* CARD_TOP = QColor(255, 255, 255, 14) */
+  --line: rgba(255, 255, 255, .18);      /* BORDER = QColor(255, 255, 255, 45) */
+  --line-soft: rgba(255, 255, 255, .08);
+  --text: #F8FAFC;
+  --text-2: #A0A8B2;
+  --text-3: #78808A;
+
+  --standby: #969EA8;  /* 待命 灰 STATE_COLORS["standby"] */
+  --active: #4DA3FF;   /* 聆聽 藍 STATE_COLORS["active"] */
+  --think: #B07CFF;    /* 思考 紫 STATE_COLORS["thinking"] */
+  --speak: #34D399;    /* 說話 綠 STATE_COLORS["speaking"]＝全站主強調色 */
+  --warn: #FFBE5C;
+  --alert: #FF6C60;
+  --pink: #FF8AD8;     /* 只用在角標等極少處 */
+
+  /* 光球特效的白：jarvis_core_fx.py:24 WHITE = QColor(240, 238, 255)；jarvis_ui.py:606,682 光點用純白 */
+  --orb-white: #F0EEFF;
+  --orb-spark: #FFFFFF;
+
+  /* 開機全像投影（jarvis_fx_gl.py:31 HOLO = (96,226,255)；:144 粒子核心 vec3(0.922,0.957,1.0)） */
+  --holo: #60E2FF;
+  --holo-core: #EBF4FF;
+  /* 全像「色散」：JARVIS 把 RGB 三色左右錯開（jarvis_fx_gl.py FS_LAYER uMode==1）；DOM 版用紅／藍兩道影子近似 */
+  --split-r: rgba(255, 40, 60, .75);
+  --split-b: rgba(40, 150, 255, .75);
+
+  --scanline: rgba(255, 255, 255, .03);  /* 掃描線（極淡、可關） */
+  --shade: rgba(0, 0, 0, .55);           /* 截圖框底的壓暗 */
+  --ink: #000000;                         /* 開機黑幕 */
+
+  /* 會被 tune 面板改的旋鈕（預設值的唯一真相在 src/config/tune.ts，這裡只是 CSS 的初值） */
+  --accent: var(--speak);
+  --state: var(--standby);   /* Hero 內跟著光球狀態變 */
+  --fx-intensity: 1;
+
+  /* 字體 */
+  --ff-display: 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+  --ff-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --ff-mono: 'Share Tech Mono', 'Consolas', ui-monospace, monospace;
+  --ff-display-sans: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+}
+
+html[data-accent='active'] { --accent: var(--active); }
+html[data-accent='think'] { --accent: var(--think); }
+html[data-title-font='sans'] { --ff-display: var(--ff-display-sans); }

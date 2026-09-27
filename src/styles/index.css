@@ -1,0 +1,78 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./components.css";
+
+/* Tailwind 預設色票整包關掉：只准用下面這些 token（防 blue-500 / indigo-600 這類 AI 臉配色混進來） */
+@theme {
+  --color-*: initial;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-card-top: var(--card-top);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-standby: var(--standby);
+  --color-active: var(--active);
+  --color-think: var(--think);
+  --color-speak: var(--speak);
+  --color-warn: var(--warn);
+  --color-alert: var(--alert);
+  --color-pink: var(--pink);
+  --color-holo: var(--holo);
+  --color-accent: var(--accent);
+  --color-state: var(--state);
+  --color-ink: var(--ink);
+
+  --font-sans: var(--ff-body);
+  --font-display: var(--ff-display);
+  --font-body: var(--ff-body);
+  --font-mono: var(--ff-mono);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--ff-body);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    min-height: 100%;
+  }
+
+  /* 自訂 display 的元件會蓋掉 hidden 的預設 display:none（never-twice 2026-09-14 收入監控台） */
+  [hidden] {
+    display: none !important;
+  }
+
+  /* 中文斷行保護（design-dna §2.5）：三行缺一不可。balance 對中文無效，不要用 */
+  :where(h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption, dd, dt, th, td, label, button, a) {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+    color: var(--text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
