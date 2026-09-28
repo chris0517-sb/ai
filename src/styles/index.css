@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./tokens.css";
 @import "./components.css";
+@import "./phase2.css";
 
 /* Tailwind 預設色票整包關掉：只准用下面這些 token（防 blue-500 / indigo-600 這類 AI 臉配色混進來） */
 @theme {

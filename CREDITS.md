@@ -29,3 +29,8 @@ Noto Serif TC、Noto Sans TC、Share Tech Mono — SIL Open Font License 1.1。
 - 光球（線框變形球、刻度環、掃描弧、思考中的神經網路閃爍、說話中的頻譜冠冕）與開機全像投影：
   移植自楊承翰自己的 JARVIS 原始碼（PySide6），見 `src/orb/orbCore.ts`、`src/boot/` 檔頭的來源行號。
 - 畫面截圖 `public/img/jarvis-hud.*`：JARVIS 在他桌面上的真實畫面。
+- 點畫面的衝擊波、點光球的兩圈環：移植自 JARVIS 的滑鼠特效（`jarvis_mouse_fx.py` 的 CoreHit），見 `src/fx/` 檔頭。
+- 第二段（蜂巢／其他作品／聯絡）沒有再搬第三方元件：蜂巢六角地圖、光束與工單光點、三個故事的互動畫面、
+  作品卡上的點陣／流程／OCR 小面板都是本站手刻（SVG＋CSS）；數字沿用上面的 Number Ticker。
+- 畫面截圖 `public/img/hive-desk.*`、`public/img/works/*`：他自己專案的畫面（取自 應徵資料\images 與 奧迪奎爾上架圖，
+  只縮圖、轉 webp，沒改內容）。

@@ -160,6 +160,23 @@ export function Hero() {
     if (!el) return
     e.preventDefault()
     el.scrollIntoView({ behavior: isStatic ? 'auto' : 'smooth', block: 'start' })
+    if (isStatic) return
+    // 保險：平滑捲動途中若上面有東西長高（進場動畫），停下來後補一次對齊。
+    // 用 setInterval 看捲動停了沒（Safari 舊版沒有 scrollend）；使用者自己捲走了就不管。
+    let last = -1
+    let still = 0
+    let n = 0
+    const iv = window.setInterval(() => {
+      n++
+      const y = window.scrollY
+      still = y === last ? still + 1 : 0
+      last = y
+      if (still < 2 && n < 30) return
+      window.clearInterval(iv)
+      const want = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
+      const off = el.getBoundingClientRect().top - want
+      if (Math.abs(off) > 2 && Math.abs(off) < 240) window.scrollBy({ top: off, behavior: 'auto' })
+    }, 120)
   }
 
   // 字幕框高度＝「現在要講的那一整段」的高度：開口那一刻就平滑長到位，打字時不再跳；
@@ -302,7 +319,17 @@ export function Hero() {
               onClick={() => ask(q)}
             >
               <span className="chip-idx">0{i + 1}</span>
-              <span>{q.q}</span>
+              <span>
+                {'wrapAt' in q ? (
+                  <>
+                    {q.q.slice(0, q.wrapAt)}
+                    <wbr />
+                    {q.q.slice(q.wrapAt)}
+                  </>
+                ) : (
+                  q.q
+                )}
+              </span>
             </button>
           ))}
         </div>

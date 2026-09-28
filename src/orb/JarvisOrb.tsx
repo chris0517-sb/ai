@@ -35,6 +35,9 @@ interface Props {
   getLit: () => number | null
   /** 點一下光球（不是拖曳）＝打斷她說話（JARVIS 本來就有：jarvis_ui.py:74 INTERRUPT_PATH） */
   onTap?: () => void
+  /** 開機投影要拿它當「球體」：只有開場那顆是 true（結尾的小光球不參加開機） */
+  holo?: boolean
+  testId?: string
   className?: string
 }
 
@@ -44,7 +47,7 @@ interface Props {
  * - 畫布離開視窗或分頁隱藏 → 停畫（規格 §5）
  * - static：只畫一格；狀態變了才重畫那一格（顏色換掉），不跑動畫
  */
-export function JarvisOrb({ state, frozen, getLevel, getLit, onTap, className }: Props) {
+export function JarvisOrb({ state, frozen, getLevel, getLit, onTap, holo = true, testId = 'orb', className }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fx = useFx()
@@ -265,7 +268,7 @@ export function JarvisOrb({ state, frozen, getLevel, getLit, onTap, className }:
   }, [state, fx.level])
 
   return (
-    <div ref={wrapRef} className={cn('orb', className)} data-holo="core" data-state={state} data-testid="orb">
+    <div ref={wrapRef} className={cn('orb', className)} data-holo={holo ? 'core' : undefined} data-state={state} data-testid={testId}>
       <canvas ref={canvasRef} className="orb-canvas" aria-hidden="true" />
     </div>
   )

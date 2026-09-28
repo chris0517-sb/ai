@@ -7,7 +7,10 @@ import { Hero } from './hero/Hero'
 import { dprCap, startFpsProbe, useFx } from './lib/fx'
 import { tuneEnabled, useTune } from './lib/tune'
 import { clamp, searchParams } from './lib/utils'
+import { Contact } from './sections/Contact'
+import { HiveChapter } from './sections/hive/HiveChapter'
 import { JarvisChapter } from './sections/JarvisChapter'
+import { Works } from './sections/Works'
 
 const TunePanel = lazy(() => import('./tune/TunePanel'))
 const DebugPanel = lazy(() => import('./debug/DebugPanel'))
@@ -48,6 +51,9 @@ export default function App({ initialBoot }: { initialBoot: boolean }) {
       <main className="site">
         <Hero />
         <JarvisChapter />
+        <HiveChapter />
+        <Works />
+        <Contact />
       </main>
       <ShockLayer />
       {booting ? <BootOverlay onDone={() => setBooting(false)} /> : null}

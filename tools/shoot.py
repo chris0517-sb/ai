@@ -128,19 +128,87 @@ def run_tour_only(browser, base, opts, w):
     ctx.close()
 
 
+P2_NAMES = ("hive-map", "hive-decision", "hive-delivered", "hive-record", "hive-screen", "hive-a", "hive-b", "hive-c", "works-1", "works-3", "contact", "contact-outro")
+
+
+def run_phase2(browser, base, opts, w):
+    """第二段（spec-phase2.md §5）：蜂巢地圖、決定卡、數字、真實畫面、三個故事、其他作品（手機第一張＋滑到第三張）、聯絡。"""
+    ctx = browser.new_context(**opts)
+    ctx.add_init_script(SKIP_BOOT)
+    page = ctx.new_page()
+    page.goto(base)
+    wait_boot_settled(page)
+    page.evaluate("document.fonts.ready")
+    page.wait_for_timeout(600)
+
+    def at_minute(m, wait=900):
+        y = page.evaluate(f"() => window.__jarvisSite.hiveDay.scrollFor({m})")
+        page.evaluate(f"() => window.scrollTo(0, {y})")
+        page.wait_for_timeout(wait)
+
+    # 蜂巢地圖：工單走到工程部（做成文件）
+    at_minute(150, 700)
+    at_minute(300, 1100)
+    shot(page, f"{w}-hive-map.png")
+    # 決定卡（停 3 秒會自動選推薦，所以 1 秒內拍）
+    at_minute(575, 900)
+    shot(page, f"{w}-hive-decision.png")
+    page.locator(".hive-option[data-opt=B]").click()
+    page.wait_for_timeout(1500)
+    shot(page, f"{w}-hive-delivered.png")
+
+    scroll_to(page, "[data-testid=hive-record]", "start", -72)
+    page.wait_for_timeout(5200)
+    shot(page, f"{w}-hive-record.png")
+    scroll_to(page, "[data-testid=hive-screen]", "start", -72)
+    page.wait_for_timeout(1600)
+    shot(page, f"{w}-hive-screen.png")
+    for k, wait in (("a", 1800), ("b", 5600), ("c", 4400)):
+        scroll_to(page, f"#hive-{k}", "start")
+        page.wait_for_timeout(wait)
+        shot(page, f"{w}-hive-{k}.png")
+
+    scroll_to(page, "#works", "start", 40)
+    page.wait_for_timeout(1200)
+    shot(page, f"{w}-works-1.png")
+    if w < 1024:
+        page.locator("[data-testid=works-next]").click()
+        page.wait_for_timeout(700)
+        page.locator("[data-testid=works-next]").click()
+        page.wait_for_timeout(900)
+    else:
+        scroll_to(page, ".work-card[data-card=manga]", "start", -80)
+        page.wait_for_timeout(900)
+    shot(page, f"{w}-works-3.png")
+
+    scroll_to(page, "#contact", "start", 40)
+    page.wait_for_timeout(1200)
+    shot(page, f"{w}-contact.png")
+    page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
+    page.wait_for_timeout(2600)
+    shot(page, f"{w}-contact-outro.png")
+    ctx.close()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default=None)
+    ap.add_argument("--only", default=None, help="p2＝只拍第二段")
     args = ap.parse_args()
     os.makedirs(SHOTS, exist_ok=True)
     with Preview(args.url) as base, sync_playwright() as p:
         browser = p.chromium.launch()
-        run_size(browser, base, MOBILE, 375)
-        run_tour_only(browser, base, dict(viewport={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True), 390)
-        run_size(browser, base, DESKTOP, 1440)
+        if args.only != "p2":
+            run_size(browser, base, MOBILE, 375)
+            run_tour_only(browser, base, dict(viewport={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True), 390)
+            run_size(browser, base, DESKTOP, 1440)
+        run_phase2(browser, base, MOBILE, 375)
+        run_phase2(browser, base, DESKTOP, 1440)
         browser.close()
-    need = [f"{w}-{n}.png" for w in (375, 1440) for n in ("hero", "hero-speaking", "tour-1", "tour-2", "tour-3", "tour-4", "abilities", "demoA", "demoB", "demoC")]
-    need += [f"390-tour-{k}.png" for k in range(1, 5)]
+    need = [f"{w}-{n}.png" for w in (375, 1440) for n in P2_NAMES]
+    if args.only != "p2":
+        need += [f"{w}-{n}.png" for w in (375, 1440) for n in ("hero", "hero-speaking", "tour-1", "tour-2", "tour-3", "tour-4", "abilities", "demoA", "demoB", "demoC")]
+        need += [f"390-tour-{k}.png" for k in range(1, 5)]
     miss = [n for n in need if not os.path.exists(os.path.join(SHOTS, n))]
     print(f"\n規格 §8 需要 {len(need)} 張，缺 {len(miss)} 張：{miss if miss else '無'}")
     sys.exit(1 if miss else 0)

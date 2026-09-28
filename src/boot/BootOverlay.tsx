@@ -19,6 +19,8 @@ const rgb = (token: string): RGB => {
  */
 /** 減少動態效果版的開機：≤1.2 秒的「組裝淡入」——黑幕淡掉、光球先亮、各區塊依投影順序一塊塊淡入；
  *  沒有飛行粒子、沒有閃爍、沒有色散、沒有大幅縮放（不閃白）。 */
+/** 開機圖層保底（spec-phase2 §4）：用 setTimeout（不靠 rAF），開機開始後最多 4 秒一定收幕、data-boot=done */
+const BOOT_GUARD_MS = 3000 // 規格上限 4 秒；抓 3 秒留載入時間的餘裕（正常開機 1.75 秒、減少動態 1.1 秒，碰不到）
 const FADE_BOOT_SECONDS = 1.1 // 量到的會多一格（約 16ms），留餘裕守住 ≤1.2 秒
 const smooth01 = (x: number) => {
   const c = x < 0 ? 0 : x > 1 ? 1 : x
@@ -72,7 +74,9 @@ function runFadeBoot(overlay: HTMLDivElement, speed: number, done: () => void) {
   window.addEventListener('keydown', skip, opts)
   window.addEventListener('wheel', skip, { capture: true, passive: true })
   window.addEventListener('touchstart', skip, { capture: true, passive: true })
+  const guard = window.setTimeout(finish, BOOT_GUARD_MS) // 保底：rAF 完全不跑也會收幕
   function detach() {
+    window.clearTimeout(guard)
     window.removeEventListener('pointerdown', skip, opts)
     window.removeEventListener('keydown', skip, opts)
     window.removeEventListener('wheel', skip, { capture: true })
@@ -163,7 +167,9 @@ export default function BootOverlay({ onDone }: { onDone: () => void }) {
     window.addEventListener('wheel', skip, { capture: true, passive: true })
     window.addEventListener('touchstart', skip, { capture: true, passive: true })
     window.addEventListener('resize', skip)
+    const guard = window.setTimeout(finish, BOOT_GUARD_MS) // 保底：rAF 完全不跑（省電模式、背景分頁）也會收幕
     function detach() {
+      window.clearTimeout(guard)
       window.removeEventListener('pointerdown', skip, opts)
       window.removeEventListener('keydown', skip, opts)
       window.removeEventListener('wheel', skip, { capture: true })

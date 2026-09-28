@@ -1,6 +1,6 @@
 import { Decrypt, Title } from '../components/Decrypt'
 import { NumberTicker } from '../components/magicui/number-ticker'
-import { jarvis, next } from '../content'
+import { jarvis } from '../content'
 import { useFx } from '../lib/fx'
 import { Abilities } from './Abilities'
 import { DemoRouting } from './DemoRouting'
@@ -29,7 +29,7 @@ function Stats() {
   )
 }
 
-/** 01 / JARVIS 章節。第二期的章節（蜂巢…）照同樣的骨架接在後面：section[data-chapter]＋content.ts 的 chapters */
+/** 01 / JARVIS 章節。後面的章節（02 蜂巢、03 其他作品、04 聯絡）照同樣的骨架接在後面：section[data-chapter]＋content.ts 的 chapters */
 export function JarvisChapter() {
   return (
     <section id="jarvis" className="chapter" data-chapter="jarvis">
@@ -55,9 +55,6 @@ export function JarvisChapter() {
           <p>{jarvis.myPart}</p>
         </div>
 
-        <p className="next" data-testid="next">
-          {next.text}
-        </p>
       </div>
     </section>
   )
