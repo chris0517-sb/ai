@@ -1,5 +1,6 @@
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ArrowDown } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
 import { Decrypt } from '../components/Decrypt'
 import { Corners } from '../components/hud/Corners'
 import { hero, profile, type OrbState, type Question } from '../content'
@@ -20,12 +21,6 @@ const THINK_MS = 600
 
 type Spoken = { text: string; q?: Question }
 
-/** 字幕條要預留的高度＝所有可能出現的字裡最高的那段（開場白＋四個答案），打字時版面才不會跳 */
-const SIZERS: { text: string; link?: string }[] = [
-  { text: hero.intro },
-  ...hero.questions.map((q) => ({ text: q.a, link: 'link' in q ? q.link.label : undefined })),
-]
-
 export function Hero() {
   const fx = useFx()
   const tune = useTune()
@@ -37,6 +32,9 @@ export function Hero() {
   const [spoken, setSpoken] = useState<Spoken | null>(null)
   const [typedDone, setTypedDone] = useState(false)
   const typedRef = useRef<HTMLSpanElement>(null)
+  const boxRef = useRef<HTMLDivElement>(null)
+  const sizerRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
   const speechRef = useRef<{ plan: SpeechPlan; start: number } | null>(null)
   const rafRef = useRef(0)
   const timers = useRef<number[]>([])
@@ -143,11 +141,58 @@ export function Hero() {
     el.scrollIntoView({ behavior: isStatic ? 'auto' : 'smooth', block: 'start' })
   }
 
+  // 字幕框高度＝「現在要講的那一整段」的高度：開口那一刻就平滑長到位，打字時不再跳；
+  // 短句就是短框，不留一大片空（2026-09-28 修正輪 P5）。思考中維持上一段的高度。
+  useLayoutEffect(() => {
+    const box = boxRef.current
+    const sizer = sizerRef.current
+    if (!box || !sizer) return
+    let first = true
+    const apply = () => {
+      const h = sizer.offsetHeight
+      if (first) {
+        box.style.transition = 'none'
+        box.style.height = `${h}px`
+        void box.offsetHeight
+        box.style.transition = ''
+        first = false
+      } else {
+        box.style.height = `${h}px`
+      }
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(sizer)
+    return () => ro.disconnect()
+  }, [])
+
+  // 字幕框長高／縮短會讓整個開場變高變矮 → 下面導覽區（GSAP 釘住）的起訖點要重算，不然釘住時會跳一下
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    let last = el.offsetHeight
+    let t = 0
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight
+      if (h === last) return
+      last = h
+      window.clearTimeout(t)
+      t = window.setTimeout(() => ScrollTrigger.refresh(), 360)
+    })
+    ro.observe(el)
+    return () => {
+      ro.disconnect()
+      window.clearTimeout(t)
+    }
+  }, [])
+
   const bootSettled = boot === 'done' || boot === 'off'
   const link = spoken?.q && 'link' in spoken.q ? spoken.q.link : null
+  const target = spoken ?? { text: hero.intro }
+  const targetLink = target.q && 'link' in target.q ? target.q.link.label : null
 
   return (
-    <section id="top" className="hero" data-testid="hero" style={{ '--state': STATE_VAR[orbState] } as CSSProperties}>
+    <section id="top" ref={sectionRef} className="hero" data-testid="hero" style={{ '--state': STATE_VAR[orbState] } as CSSProperties}>
       <Corners holo />
 
       <div className="hero-top">
@@ -177,28 +222,24 @@ export function Hero() {
           <span className="subtitle-lamp" aria-hidden="true" />
           <div className="subtitle-head" aria-hidden="true">
             <span>{hero.subtitleHead}</span>
-            <span className="subtitle-live">{hero.subtitleLive}</span>
           </div>
           <div className="subtitle-body">
             <span className="subtitle-prompt" aria-hidden="true">
               &gt;
             </span>
+            <div className="subtitle-box" ref={boxRef} data-testid="subtitle-box">
             <div className="subtitle-grid">
-              {SIZERS.map((s, i) => (
-                <div key={i} className="subtitle-sizer" aria-hidden="true" data-sizer={i}>
-                  <p className="subtitle-text" data-measure="subtitle">
-                    {s.text}
-                  </p>
-                  {s.link ? (
-                    <span className="subtitle-link-slot">
-                      <span className="subtitle-link">
-                        {s.link}
-                        <ArrowDown size={16} />
-                      </span>
+              <div className="subtitle-sizer" aria-hidden="true" ref={sizerRef}>
+                <p className="subtitle-text">{target.text}</p>
+                {targetLink ? (
+                  <span className="subtitle-link-slot">
+                    <span className="subtitle-link">
+                      {targetLink}
+                      <ArrowDown size={16} />
                     </span>
-                  ) : null}
-                </div>
-              ))}
+                  </span>
+                ) : null}
+              </div>
               <div>
                 <p className="subtitle-text" data-thinking="true" hidden={!thinkingQ}>
                   {thinkingQ}
@@ -208,7 +249,7 @@ export function Hero() {
                     <i />
                   </span>
                 </p>
-                <p className="subtitle-text" data-testid="subtitle" hidden={!!thinkingQ}>
+                <p className="subtitle-text" data-testid="subtitle" data-measure="subtitle" hidden={!!thinkingQ}>
                   <span ref={typedRef} />
                   {isStatic ? null : <span className="cursor" data-typing={!typedDone} aria-hidden="true" />}
                 </p>
@@ -221,6 +262,7 @@ export function Hero() {
                   </span>
                 ) : null}
               </div>
+            </div>
             </div>
           </div>
           <p className="sr-only" aria-live="polite">

@@ -7,7 +7,7 @@
 |---|---|---|---|---|---|
 | Dot Grid（React Bits） | https://reactbits.dev/r/DotGrid-TS-TW.json（github.com/DavidHDev/react-bits） | 2026-09-28 | MIT + Commons Clause（個人網站可用；不可把它當元件庫產品販售） | `src/components/reactbits/DotGrid.tsx` | 顏色吃 token、沒動靜時停止重畫、lite 級不掛滑鼠事件、同色點批次填、DPR 依特效分級封頂 |
 | Decrypted Text（React Bits） | https://reactbits.dev/r/DecryptedText-TS-TW.json（github.com/DavidHDev/react-bits） | 2026-09-28 | MIT + Commons Clause | `src/components/reactbits/DecryptedText.tsx` | 亂碼字寬不變（中文換中文、英數換英數）、`enabled` 開關、外層可改成 inline |
-| Terminal（Magic UI） | https://magicui.design/r/terminal.json（github.com/magicuidesign/magicui） | 2026-09-28 | MIT | `src/components/magicui/terminal.tsx` | 外框與三顆燈號改 token 色、拿掉大圓角、長指令可換行、標題列加檔名；修正 AnimatedSpan 沒輪到就回報完成（第一行不出現）的 bug |
+| Terminal（Magic UI） | https://magicui.design/r/terminal.json（github.com/magicuidesign/magicui） | 2026-09-28 | MIT | `src/components/magicui/terminal.tsx` | 外框與三顆燈號改 token 色、拿掉大圓角、長指令可換行、標題列加檔名；修正 AnimatedSpan 沒輪到就回報完成（第一行不出現）的 bug；加 `onProgress`（回報序列進度，給迷你光球與攔截閃紅用） |
 | Animated Beam（Magic UI） | https://magicui.design/r/animated-beam.json（github.com/magicuidesign/magicui） | 2026-09-28 | MIT | `src/components/magicui/animated-beam.tsx` | 拿掉預設色（改由呼叫端傳 token 色）、加 `isStatic` |
 | Number Ticker（Magic UI） | https://magicui.design/r/number-ticker.json（github.com/magicuidesign/magicui） | 2026-09-28 | MIT | `src/components/magicui/number-ticker.tsx` | 預設字色改 token |
 

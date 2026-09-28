@@ -1,5 +1,6 @@
 import { BellRing, Gauge, Layers, MessageCircle, Mic, Monitor, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { Waveform } from '../components/Waveform'
 import { jarvis } from '../content'
 import { useFx } from '../lib/fx'
 
@@ -92,16 +93,21 @@ export function Abilities() {
       <div className="abilities" ref={listRef}>
         {jarvis.abilities.map((a, i) => {
           const Icon = ICONS[a.icon]
+          // 01（語音）是主打卡：比較大、上面有 JARVIS 舞台底部那條會動的聲音波形；其他五張各有自己的小動態
+          const lead = i === 0
           return (
-            <article key={a.icon} className="plate ability">
+            <article key={a.icon} className={lead ? 'plate ability ability-lead' : 'plate ability'} data-lead={lead || undefined}>
+              {lead ? <Waveform className="ability-wave" /> : null}
               <div className="ability-top">
                 <span className="ability-icon">
-                  <Icon size={20} strokeWidth={1.6} aria-hidden="true" />
+                  <Icon size={lead ? 22 : 20} strokeWidth={1.6} aria-hidden="true" />
                 </span>
                 <span className="ability-num">0{i + 1}</span>
-                <span className="ability-viz" aria-hidden="true">
-                  <Viz k={a.icon} />
-                </span>
+                {lead ? null : (
+                  <span className="ability-viz" aria-hidden="true">
+                    <Viz k={a.icon} />
+                  </span>
+                )}
               </div>
               <h3 data-measure="title">{a.title}</h3>
               <p>{a.body}</p>

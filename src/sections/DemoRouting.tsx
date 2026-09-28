@@ -1,7 +1,10 @@
 import { BrainCircuit, MessageSquareText, WifiOff, Zap } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { Title } from '../components/Decrypt'
+import { Corners } from '../components/hud/Corners'
 import { AnimatedBeam } from '../components/magicui/animated-beam'
+import { Story } from '../components/Story'
 import { jarvis } from '../content'
 import { useFx } from '../lib/fx'
 import { useTune } from '../lib/tune'
@@ -76,13 +79,16 @@ export function DemoRouting() {
   const beam = { pathColor: col.line, pathOpacity: 0.35, pathWidth: 2, isStatic }
 
   return (
-    <div className="demo demo-c" data-testid="demo-c">
-      <div className="demo-copy">
-        <p className="mono-tag">{C.tag}</p>
+    <article className="demo demo-c" data-testid="demo-c" style={{ '--demo': 'var(--think)' } as CSSProperties}>
+      <header className="demo-head">
+        <p className="demo-tag">
+          <i className="demo-lamp" aria-hidden="true" />
+          {C.tag}
+        </p>
         <Title lines={C.title} as="h3" className="h-display h3" />
-        <p className="body">{C.body}</p>
-      </div>
-      <div className="demo-stage">
+      </header>
+      <div className="demo-stage" data-testid="demo-stage">
+        <Corners className="demo-corners" />
         <div className="plate route" ref={boxRef}>
           <div className="route-grid" ref={gridRef}>
             <div className="node node-input" ref={inputRef}>
@@ -179,6 +185,9 @@ export function DemoRouting() {
           </div>
         </div>
       </div>
-    </div>
+      <div className="demo-copy">
+        <Story short={C.body.short} more={C.body.more} />
+      </div>
+    </article>
   )
 }

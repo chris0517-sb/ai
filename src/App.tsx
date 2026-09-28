@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import BootOverlay from './boot/BootOverlay'
-import { ChapterNav } from './components/ChapterNav'
 import DotGrid from './components/reactbits/DotGrid'
+import { TopBar } from './components/TopBar'
 import { Hero } from './hero/Hero'
 import { dprCap, startFpsProbe, useFx } from './lib/fx'
 import { tuneEnabled, useTune } from './lib/tune'
@@ -37,7 +37,7 @@ export default function App({ initialBoot }: { initialBoot: boolean }) {
           shockRadius={Math.round(140 + 80 * k)}
         />
       </div>
-      <ChapterNav />
+      <TopBar />
       <main className="site">
         <Hero />
         <JarvisChapter />

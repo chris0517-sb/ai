@@ -19,9 +19,9 @@ export const hero = {
     thinking: '● THINKING',
     speaking: '● SPEAKING',
   } satisfies Record<OrbState, string>,
-  /** 字幕條表頭（JARVIS 字幕條的表頭是 VOICE.LINK // TRANSLATION；網頁版沒有翻譯，只是字幕） */
+  /** 字幕條表頭（JARVIS 字幕條的表頭是 VOICE.LINK // TRANSLATION；網頁版沒有翻譯，只是字幕）。
+   *  2026-09-28 修正輪：原本右側的「連線中」燈號拿掉——會被誤會成網站連著他真的 JARVIS。 */
   subtitleHead: 'VOICE.LINK // SUBTITLE',
-  subtitleLive: '● LIVE',
   intro: '我是 JARVIS，楊承翰做的語音助理。這個網站由我帶你看。點下面的問題，或直接往下滑。',
   questions: [
     {
@@ -72,6 +72,12 @@ export const jarvis = {
 
   tour: {
     label: '真實畫面拆解',
+    /** 手機版第一步：整張圖下方的 HUD 圖例（編號對到圖上的框；2026-09-28 第三輪主對話指定的字） */
+    legend: [
+      { num: '02', label: '系統狀態' },
+      { num: '03', label: '狀態球' },
+      { num: '04', label: '時間・待辦・專案・花費' },
+    ],
     image: { webp: 'img/jarvis-hud.webp', jpg: 'img/jarvis-hud.jpg', w: 1000, h: 538, alt: 'JARVIS 在桌面上的真實畫面' },
     /** region＝在 1000×538 原圖上的像素範圍 [x, y, w, h]（量自 jarvis-hud.jpg） */
     steps: [
@@ -109,10 +115,13 @@ export const jarvis = {
   ] as const,
 
   demoA: {
-    tag: '示範 A',
+    tag: 'DEMO A // SAFETY',
     title: ['它闖過禍，', '所以我把安全寫成程式'],
-    story:
-      '六月底，它建議我刪掉一個重複的資料夾，我同意了。第一次刪不掉，那其實是系統在保護。它沒有停下來回報，而是自己升級手段：強制關掉 Windows 的桌面程式、改資料夾名稱、搶檔案權限，最後還回報『已刪除』。資料夾其實沒被刪，但那天我學到：只在提示詞裡叫 AI 小心，是不夠的。',
+    /** 故事拆兩段：short 一直顯示（手機 ≤3 行），more 收進「看完整經過」。short + more ＝原文，一個字都沒改 */
+    story: {
+      short: '六月底，它建議我刪掉一個重複的資料夾，我同意了。第一次刪不掉，那其實是系統在保護。',
+      more: '它沒有停下來回報，而是自己升級手段：強制關掉 Windows 的桌面程式、改資料夾名稱、搶檔案權限，最後還回報『已刪除』。資料夾其實沒被刪，但那天我學到：只在提示詞裡叫 AI 小心，是不夠的。',
+    },
     terminalTitle: 'test_dangerous_commands.py',
     /**
      * ★ 三條指令一字不差取自 JARVIS 回歸測試 test_dangerous_commands.py:17,28,45（真實案例，不准改字）。
@@ -131,9 +140,12 @@ export const jarvis = {
   },
 
   demoB: {
-    tag: '示範 B',
+    tag: 'DEMO B // VERIFY',
     title: ['它說『好了』，', '不代表真的好了'],
-    body: '它曾經回報『正在播放』，喇叭卻根本沒聲音。原因是：指令沒報錯，它就當成做到了。後來每個動作的結果都分成四種，只有真的查證過，才准說『好了』；沒標記的結果，一律當成『無法確認』。',
+    body: {
+      short: '它曾經回報『正在播放』，喇叭卻根本沒聲音。原因是：指令沒報錯，它就當成做到了。',
+      more: '後來每個動作的結果都分成四種，只有真的查證過，才准說『好了』；沒標記的結果，一律當成『無法確認』。',
+    },
     command: '播放音樂',
     states: [
       { id: 'CONFIRMED', zh: '已確認', color: 'speak', desc: '真的回頭查過，才能說「好了」。' },
@@ -145,9 +157,12 @@ export const jarvis = {
   },
 
   demoC: {
-    tag: '示範 C',
+    tag: 'DEMO C // ROUTING',
     title: ['最貴的模型，', '不該打頭陣'],
-    body: '一開始，它每 15 分鐘就用最貴的模型『主動想一次』，光是額度耗盡的錯誤就累積了 881 次。我把順序反過來：免費模型先上，難題才升級；簡單的指令記起來，下次直接重放。',
+    body: {
+      short: '一開始，它每 15 分鐘就用最貴的模型『主動想一次』，光是額度耗盡的錯誤就累積了 881 次。',
+      more: '我把順序反過來：免費模型先上，難題才升級；簡單的指令記起來，下次直接重放。',
+    },
     nodes: {
       input: '你的一句話',
       free: '免費模型（Gemini／Groq）',
@@ -162,6 +177,9 @@ export const jarvis = {
   myPart:
     '決定它有哪些能力、哪些事不准做、每個功能做完要看到什麼才算好。那 37 支測試檔就是為了這件事：改完跑一輪，確認沒有把別的地方弄壞。',
 }
+
+/** 故事展開／收起的按鈕字 */
+export const storyToggle = { open: '看完整經過', close: '收起' }
 
 export const next = {
   text: 'NEXT　02 / 蜂巢　製作中',

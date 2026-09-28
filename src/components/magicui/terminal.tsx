@@ -4,6 +4,7 @@
  * 本站的改動：外框／三顆燈號改用 token 色（--line、--card、--alert／--warn／--speak），不用庫預設的 red-500 等；
  * 拿掉大圓角（本站形狀語言是切角），<pre> 允許換行（長指令在手機上不橫捲），標題列加檔名 title。
  * 修一個 bug：AnimatedSpan 還沒輪到就回報完成，會讓第一行永遠不出現（見 onAnimationComplete）。
+ * 加 onProgress：回報序列跑到第幾項（示範 A 的迷你光球狀態、攔截閃紅用）。
  * 其餘逐項 sequence、打字、淡入的動畫邏輯原封不動。
  */
 "use client"
@@ -244,6 +245,8 @@ interface TerminalProps {
   startOnView?: boolean
   /** 本站加的：標題列右側的檔名 */
   title?: React.ReactNode
+  /** 本站加的：序列跑到第幾項（-1＝還沒開始）。示範 A 用它讓迷你光球跟著變狀態、攔截時閃紅 */
+  onProgress?: (activeIndex: number) => void
 }
 
 export const Terminal = ({
@@ -252,6 +255,7 @@ export const Terminal = ({
   sequence = true,
   startOnView = true,
   title,
+  onProgress,
 }: TerminalProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const isInView = useInView(containerRef as React.RefObject<Element>, {
@@ -261,6 +265,12 @@ export const Terminal = ({
 
   const [activeIndex, setActiveIndex] = useState(0)
   const sequenceHasStarted = sequence ? !startOnView || isInView : false
+
+  const progressRef = useRef(onProgress)
+  progressRef.current = onProgress
+  useEffect(() => {
+    progressRef.current?.(sequenceHasStarted ? activeIndex : -1)
+  }, [activeIndex, sequenceHasStarted])
 
   const contextValue = useMemo<SequenceContextValue | null>(() => {
     if (!sequence) return null

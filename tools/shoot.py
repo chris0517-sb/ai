@@ -90,10 +90,7 @@ def run_size(browser, base, opts, w):
     shot(page, f"{w}-abilities.png")
 
     # 6) 示範 A 播完（終端機進入視窗自動播，等最後一行出現）
-    if w < 1024:
-        scroll_to(page, "#demo-safety .term", "center")
-    else:
-        scroll_to(page, "#demo-safety", "start", -40)
+    scroll_to(page, "#demo-safety", "start")  # .demo 有 scroll-margin-top：段標會停在頂部導覽列下面
     page.wait_for_function(
         "() => { const v = document.querySelectorAll('#demo-safety .term-verdict'); const last = v[v.length-1]; return last && getComputedStyle(last.parentElement).opacity === '1'; }",
         timeout=20000,
@@ -102,21 +99,32 @@ def run_size(browser, base, opts, w):
     shot(page, f"{w}-demoA.png")
 
     # 7) 示範 B（結果晶片閃完停在 UNVERIFIED）
-    if w < 1024:
-        scroll_to(page, "[data-testid=demo-b] .verify", "center")
-    else:
-        scroll_to(page, "[data-testid=demo-b]", "start", -40)
+    scroll_to(page, "[data-testid=demo-b]", "start")
     page.wait_for_function("() => document.querySelector('[data-testid=verify-result]').dataset.settled === 'true'", timeout=10000)
     page.wait_for_timeout(400)
     shot(page, f"{w}-demoB.png")
 
     # 8) 示範 C（光束流動中）
-    if w < 1024:
-        scroll_to(page, "[data-testid=demo-c] .route", "start", -16)
-    else:
-        scroll_to(page, "[data-testid=demo-c]", "start", -40)
+    scroll_to(page, "[data-testid=demo-c]", "start")
     page.wait_for_timeout(1600)
     shot(page, f"{w}-demoC.png")
+    ctx.close()
+
+
+def run_tour_only(browser, base, opts, w):
+    """只拍導覽 4 步（第三輪手機導覽：390×844 也要看）。"""
+    ctx = browser.new_context(**opts)
+    ctx.add_init_script(SKIP_BOOT)
+    page = ctx.new_page()
+    page.goto(base)
+    wait_boot_settled(page)
+    page.evaluate("document.fonts.ready")
+    page.wait_for_timeout(600)
+    for i in range(4):
+        y = page.evaluate(f"() => window.__jarvisSite.tour.scrollFor({i})")
+        page.evaluate(f"() => window.scrollTo(0, {y})")
+        page.wait_for_timeout(1500)
+        shot(page, f"{w}-tour-{i + 1}.png")
     ctx.close()
 
 
@@ -128,9 +136,11 @@ def main():
     with Preview(args.url) as base, sync_playwright() as p:
         browser = p.chromium.launch()
         run_size(browser, base, MOBILE, 375)
+        run_tour_only(browser, base, dict(viewport={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True), 390)
         run_size(browser, base, DESKTOP, 1440)
         browser.close()
     need = [f"{w}-{n}.png" for w in (375, 1440) for n in ("hero", "hero-speaking", "tour-1", "tour-2", "tour-3", "tour-4", "abilities", "demoA", "demoB", "demoC")]
+    need += [f"390-tour-{k}.png" for k in range(1, 5)]
     miss = [n for n in need if not os.path.exists(os.path.join(SHOTS, n))]
     print(f"\n規格 §8 需要 {len(need)} 張，缺 {len(miss)} 張：{miss if miss else '無'}")
     sys.exit(1 if miss else 0)

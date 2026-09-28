@@ -1,6 +1,8 @@
 import { CornerDownRight, Play } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Title } from '../components/Decrypt'
+import { Corners } from '../components/hud/Corners'
+import { Story } from '../components/Story'
 import { jarvis } from '../content'
 import { useFx } from '../lib/fx'
 import { useTune } from '../lib/tune'
@@ -72,13 +74,16 @@ export function DemoVerify() {
   const sel = byId[selected]
 
   return (
-    <div className="demo demo-b" data-testid="demo-b">
-      <div className="demo-copy">
-        <p className="mono-tag">{B.tag}</p>
+    <article className="demo demo-b" data-testid="demo-b" style={{ '--demo': 'var(--warn)' } as CSSProperties}>
+      <header className="demo-head">
+        <p className="demo-tag">
+          <i className="demo-lamp" aria-hidden="true" />
+          {B.tag}
+        </p>
         <Title lines={B.title} as="h3" className="h-display h3" />
-        <p className="body">{B.body}</p>
-      </div>
-      <div className="demo-stage">
+      </header>
+      <div className="demo-stage" data-testid="demo-stage">
+        <Corners className="demo-corners" />
         <div className="plate verify" ref={rootRef}>
           <div className="verify-cmd">
             <button type="button" className="verify-run" onClick={run} data-testid="verify-run">
@@ -120,6 +125,9 @@ export function DemoVerify() {
           </p>
         </div>
       </div>
-    </div>
+      <div className="demo-copy">
+        <Story short={B.body.short} more={B.body.more} />
+      </div>
+    </article>
   )
 }
