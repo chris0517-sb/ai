@@ -173,22 +173,23 @@ export function Works() {
           <Decrypt text={W.label} mono />
         </p>
         <Title lines={[W.title]} as="h2" className="h-display h2" />
-        <div className="works-nav" aria-hidden="false">
-          <button type="button" className="works-arrow" onClick={() => go(-1)} disabled={idx === 0} aria-label="上一張" data-testid="works-prev">
+        <div className="works-nav">
+          <button type="button" className="hud-btn works-arrow" onClick={() => go(-1)} disabled={idx === 0} aria-label="上一張" data-testid="works-prev">
             <ChevronLeft size={18} aria-hidden="true" />
           </button>
           <span className="works-count" data-testid="works-count">
             {idx + 1} / {n}
           </span>
-          <button type="button" className="works-arrow" onClick={() => go(1)} disabled={idx === n - 1} aria-label="下一張" data-testid="works-next">
+          <button type="button" className="hud-btn works-arrow" onClick={() => go(1)} disabled={idx === n - 1} aria-label="下一張" data-testid="works-next">
             <ChevronRight size={18} aria-hidden="true" />
           </button>
         </div>
         <div className="works-track" ref={trackRef} data-testid="works-track">
           {W.cards.map((c, i) => (
             <article key={c.id} className="plate work-card" data-card={c.id} data-i={i}>
-              <div className="work-visual">
+              <div className="work-visual" data-testid="work-visual">
                 <Visual c={c} />
+                <span className="work-vignette" aria-hidden="true" />
               </div>
               <h3 className="work-title" data-measure="title">
                 {c.title}

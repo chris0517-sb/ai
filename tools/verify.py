@@ -149,7 +149,7 @@ def check_chips(browser, base, ctx_opts, label):
     for i in range(4):
         page.evaluate("() => { window.__states = []; }")
         t0 = page.evaluate("() => performance.now()")
-        page.locator(".chip").nth(i).click()
+        page.locator(".chips .chip").nth(i).click()
         page.wait_for_function("() => window.__states.length >= 3 && window.__states[window.__states.length-1][0] === 'standby'", timeout=20000)
         seq = page.evaluate("() => window.__states")
         # 講完的字幕＝sr-only 的完整答案（aria-live）＝sizer 的目標字
@@ -162,10 +162,10 @@ def check_chips(browser, base, ctx_opts, label):
         ok = ok and link == (1 if i in (1, 2, 3) else 0)  # 第二段：④題也有連結（看蜂巢）
         all_ok = all_ok and ok
         rows.append({"chip": i + 1, "states": seq, "t_click": round(t0), "subtitle_ok": sub == full, "text": sub[:14], "link": link})
-    page.locator(".chip").nth(0).click()
+    page.locator(".chips .chip").nth(0).click()
     page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'speaking'", timeout=5000)
     page.wait_for_timeout(300)
-    page.locator(".chip").nth(3).click()
+    page.locator(".chips .chip").nth(3).click()
     page.wait_for_function(
         "() => document.querySelector('[data-testid=orb]').dataset.state === 'standby' && document.querySelector('[data-testid=subtitle]').textContent.length > 20",
         timeout=20000,
@@ -450,7 +450,7 @@ def check_v(p, browser, base):
     wait_idle_standby(page, 20000)
     st = fx_state(page)
     moving = orb_changes(page)
-    page.locator(".chip").nth(0).click()
+    page.locator(".chips .chip").nth(0).click()
     page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'speaking'", timeout=5000)
     lens = []
     for _ in range(12):
@@ -570,7 +570,7 @@ def check_v(p, browser, base):
     rot1 = page.evaluate("() => document.querySelector('[data-testid=orb]').dataset.rot")
     page.wait_for_timeout(700)
     rot2 = page.evaluate("() => document.querySelector('[data-testid=orb]').dataset.rot")
-    page.locator(".chip").nth(0).click()
+    page.locator(".chips .chip").nth(0).click()
     page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'speaking'", timeout=5000)
     page.wait_for_timeout(500)
     len_before = page.evaluate("() => document.querySelector('[data-testid=subtitle]').textContent.length")
@@ -614,13 +614,13 @@ def check_v(p, browser, base):
     page.goto(base)
     wait_boot_settled(page)
     wait_idle_standby(page, 20000)
-    qs = page.evaluate("() => Array.from(document.querySelectorAll('.chip')).map(b => b.querySelector('span:last-child').textContent)")
+    qs = page.evaluate("() => Array.from(document.querySelectorAll('.chips .chip')).map(b => b.querySelector('span:last-child').textContent)")
     rows = []
     ok = qs == [c[0] for c in CHIPS]
     for i, (q, a, link) in enumerate(CHIPS):
         page.evaluate("() => window.scrollTo(0, 0)")
         page.wait_for_timeout(300)
-        page.locator(".chip").nth(i).click()
+        page.locator(".chips .chip").nth(i).click()
         page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'speaking'", timeout=5000)
         page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'standby'", timeout=25000)
         got = page.locator("[data-testid=subtitle]").text_content()
@@ -741,10 +741,10 @@ def check_orphans(browser, base):
         page.goto(base + "?static=1")
         page.evaluate("document.fonts.ready")
         page.wait_for_timeout(400)
-        chips = [page.evaluate(LINES_JS, h) for h in page.query_selector_all(".chip > span:last-child")]  # 四顆晶片的題目（第二段起一起量）
+        chips = [page.evaluate(LINES_JS, h) for h in page.query_selector_all(".chips .chip > span:last-child")]  # 四顆晶片的題目（第二段起一起量）
         subs = [page.evaluate(LINES_JS, page.query_selector("[data-testid=subtitle]"))]  # 開場白
         for i in range(4):  # 四個答案：static 下點了 0.6 秒後整段直接出現
-            page.locator(".chip").nth(i).click()
+            page.locator(".chips .chip").nth(i).click()
             page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'speaking'", timeout=5000)
             subs.append(page.evaluate(LINES_JS, page.query_selector("[data-testid=subtitle]")))
         titles = [page.evaluate(LINES_JS, h) for h in page.query_selector_all("h1, [data-measure=title]")]
@@ -953,7 +953,7 @@ def check_subtitle_box(browser, base):
     }"""
     rows = [dict(page.evaluate(js), which="開場白")]
     for i in range(4):
-        page.locator(".chip").nth(i).click()
+        page.locator(".chips .chip").nth(i).click()
         page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'speaking'", timeout=5000)
         page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'standby'", timeout=20000)
         page.wait_for_timeout(400)
@@ -1138,7 +1138,7 @@ def check_h1(browser, base):
         wait_boot_settled(page)
         wait_idle_standby(page, 20000)
         ids = page.evaluate("() => Object.fromEntries(['hive','works','contact'].map(id => [id, !!document.getElementById(id)]))")
-        page.locator(".chip").nth(3).click()
+        page.locator(".chips .chip").nth(3).click()
         page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'speaking'", timeout=5000)
         page.wait_for_function("() => document.querySelector('[data-testid=orb]').dataset.state === 'standby'", timeout=25000)
         lk = page.locator("[data-testid=subtitle-link]")
@@ -1588,7 +1588,7 @@ def check_h10(p, browser, base):
                 break
             page.wait_for_timeout(100)
         chip = page.evaluate(
-            """() => { const c = document.querySelector('.chip'); const r = c.getBoundingClientRect(); const x = r.left + r.width / 2, y = r.top + r.height / 2;
+            """() => { const c = document.querySelector('.chips .chip'); const r = c.getBoundingClientRect(); const x = r.left + r.width / 2, y = r.top + r.height / 2;
                        const hit = document.elementFromPoint(x, y);
                        let op = 1, n = c; while (n && n.nodeType === 1) { op *= parseFloat(getComputedStyle(n).opacity); n = n.parentElement; }
                        return { hit: !!hit && (hit === c || c.contains(hit)), cls: hit ? String(hit.className) : null, x, y, op: Math.round(op * 100) / 100 }; }"""
@@ -1599,7 +1599,7 @@ def check_h10(p, browser, base):
         else:
             page.mouse.click(chip["x"], chip["y"])
         page.wait_for_timeout(900)
-        after = page.evaluate("() => ({ active: document.querySelector('.chip').dataset.active, state: document.querySelector('[data-testid=orb]').dataset.state })")
+        after = page.evaluate("() => ({ active: document.querySelector('.chips .chip').dataset.active, state: document.querySelector('[data-testid=orb]').dataset.state })")
         ok = seen_boot and t_done is not None and t_done <= 4500 and chip["hit"] and chip["op"] >= 0.9 and after["active"] == "true" and after["state"] in ("thinking", "speaking")
         ok_all = ok_all and ok
         rows.append({"name": name, "seen_boot": seen_boot, "t_done": round(t_done) if t_done else None, "chip": chip, "after": after})
@@ -1654,10 +1654,169 @@ def check_h12(browser, base):
     )
 
 
+# ═════════════════════════ 第二段修正輪（美感二審）R1–R5 ═════════════════════════
+HIVE_STOPS = [0, 45, 90, 165, 240, 315, 390, 450, 500, 540, 575]
+
+
+# R1 蜂巢框跟著內容：卡片接在蜂巢圖下緣（16–24px）、框內連續純黑帶 ≤ 視窗高 10%（每個停格）
+def check_r1(browser, base):
+    rows = []
+    ok_all = True
+    for w, h, dpr in ((375, 812, 2), (390, 844, 3)):
+        opts = dict(viewport={"width": w, "height": h}, device_scale_factor=dpr, is_mobile=True, has_touch=True)
+        ctx, page = new_page(browser, opts, skip_boot=True)
+        page.goto(base)
+        wait_boot_settled(page)
+        page.evaluate("document.fonts.ready")
+        limit = 0.10 * h
+        frames = []
+        for m in HIVE_STOPS + ["delivered"]:
+            if m == "delivered":
+                page.locator(".hive-option[data-opt=B]").click()
+                page.wait_for_timeout(1500)
+            else:
+                hive_minute(page, m, 450)
+            g = page.evaluate(
+                """() => { const r = (s) => { const b = document.querySelector(s).getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; };
+                           const st = r('.hive-stage'), map = r('.hive-map'), card = r('.hive-card');
+                           return { step: document.querySelector('.hive-day-pin').dataset.step, st, map, card,
+                                    gap: Math.round(card[1] - (map[1] + map[3])), below: Math.round(st[1] + st[3] - (card[1] + card[3])), vh: innerHeight }; }"""
+            )
+            x, y, ww, hh = g["st"]
+            png = page.screenshot(clip={"x": x + 2, "y": y + 2, "width": ww - 4, "height": hh - 4})
+            band, at = black_run_rows(png, dpr)
+            ok = band <= limit and 16 <= g["gap"] <= 24 and g["below"] <= 14 and y + hh <= h
+            ok_all = ok_all and ok
+            frames.append({"stop": m, "step": g["step"], "band": round(band), "at": round(at), "gap": g["gap"], "below": g["below"], "frame": [round(y), round(y + hh)], "ok": ok})
+        rows.append({"size": f"{w}×{h}", "limit": round(limit), "frames": frames})
+        ctx.close()
+    record(
+        "R1 蜂巢框跟著內容（375×812／390×844 每個停格）：卡片接在蜂巢圖下緣 16–24px、框內連續純黑帶 ≤ 視窗高 10%",
+        ok_all,
+        "；".join(
+            f"{r['size']}：{len(r['frames'])} 格最長純黑帶 {max(f['band'] for f in r['frames'])}px（上限 {r['limit']}）、蜂巢圖到卡片 {sorted({f['gap'] for f in r['frames']})}px、卡片到框底 {sorted({f['below'] for f in r['frames']})}px、框在 {r['frames'][0]['frame']}～{max(f['frame'][1] for f in r['frames'])}px"
+            + ("" if all(f["ok"] for f in r["frames"]) else f"；不過的格：{[f for f in r['frames'] if not f['ok']][:3]}")
+            for r in rows
+        ),
+        rows,
+    )
+
+
+# R2 作品縮圖外框一致：class、比例、切角、描邊色、暗角 ≤20%；圖片不加濾鏡、同一種裁切
+def check_r2(browser, base):
+    rows = []
+    ok_all = True
+    for opts, label in ((MOBILE, "375"), (DESKTOP, "1440")):
+        ctx, page = new_page(browser, opts, skip_boot=True)
+        page.goto(base)
+        wait_boot_settled(page)
+        page.evaluate("() => document.getElementById('works').scrollIntoView({ block: 'start' })")
+        page.wait_for_timeout(600)
+        d = page.evaluate(
+            r"""() => Array.from(document.querySelectorAll('.work-card')).map(c => {
+                   const v = c.querySelector('.work-visual'); const b = v.getBoundingClientRect(); const cs = getComputedStyle(v);
+                   const vg = v.querySelector('.work-vignette'); const bg = vg ? getComputedStyle(vg).backgroundImage : '';
+                   const alphas = [...bg.matchAll(/rgba\([^)]*?,\s*([\d.]+)\)|\/\s*([\d.]+)\)/g)].map(m => parseFloat(m[1] || m[2]));
+                   const imgs = Array.from(v.querySelectorAll('img')).map(i => { const s = getComputedStyle(i); return [s.filter, s.mixBlendMode, s.objectFit, s.objectPosition, s.opacity].join('|'); });
+                   return { card: c.dataset.card, cls: v.className, ratio: Math.round(b.width / b.height * 1000) / 1000, w: Math.round(b.width), clip: cs.clipPath, border: cs.borderTopColor + ' ' + cs.borderTopWidth,
+                            vignette: bg.includes('radial-gradient'), maxAlpha: alphas.length ? Math.max(...alphas) : null, imgs };
+               })"""
+        )
+        ratios = {x["ratio"] for x in d}
+        imgs = {i for x in d for i in x["imgs"]}
+        ok = (
+            len(d) == 7 and len({x["cls"] for x in d}) == 1 and max(ratios) - min(ratios) <= 0.01 and len({x["clip"] for x in d}) == 1 and "polygon" in d[0]["clip"]
+            and len({x["border"] for x in d}) == 1 and all(x["vignette"] and x["maxAlpha"] is not None and x["maxAlpha"] <= 0.2 for x in d)
+            and all(i.startswith("none|normal|cover|") and i.endswith("|1") for i in imgs) and len({i.split("|")[3] for i in imgs}) == 1
+        )
+        ok_all = ok_all and ok
+        rows.append({"w": label, "cls": sorted({x["cls"] for x in d}), "ratios": sorted(ratios), "widths": [x["w"] for x in d], "border": sorted({x["border"] for x in d}),
+                     "alpha": max((x["maxAlpha"] or 0) for x in d), "imgs": sorted(imgs), "n_img": sum(len(x["imgs"]) for x in d)})
+        ctx.close()
+    record(
+        "R2 其他作品縮圖外框一致（class／比例／切角／描邊／暗角 ≤20%），圖片沒加濾鏡、同一種裁切",
+        ok_all,
+        "；".join(f"{r['w']}：7 張 class={r['cls']}、寬高比 {r['ratios']}（寬 {r['widths']}px）、描邊 {r['border']}、暗角最深 {r['alpha']}、{r['n_img']} 張圖的 filter|混色|裁切|對齊|不透明度＝{r['imgs']}" for r in rows),
+        rows,
+    )
+
+
+# R3 輪播箭頭＝全站切角 HUD 按鈕（跟開場晶片同一個 class；hover／按下有回饋）
+def check_r3(browser, base):
+    ctx, page = new_page(browser, dict(viewport={"width": 800, "height": 900}, device_scale_factor=1))
+    page.goto(base + "")
+    wait_boot_settled(page)
+    page.evaluate("() => document.getElementById('works').scrollIntoView({ block: 'start' })")
+    page.wait_for_timeout(500)
+    js = """() => { const a = document.querySelector('[data-testid=works-next]'), p = document.querySelector('[data-testid=works-prev]'), c = document.querySelector('.chips .chip');
+                    const s = getComputedStyle(a), sc = getComputedStyle(c);
+                    return { arrow: a.className, prev: p.className, chip: c.className, clipA: s.clipPath, clipC: sc.clipPath, radius: s.borderRadius, border: s.borderTopColor, bg: s.backgroundColor, tf: s.transform }; }"""
+    d0 = page.evaluate(js)
+    box = page.locator("[data-testid=works-next]").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.wait_for_timeout(300)
+    d1 = page.evaluate(js)
+    page.mouse.down()
+    page.wait_for_timeout(250)
+    d2 = page.evaluate(js)
+    page.mouse.up()
+    shared = [c for c in d0["chip"].split() if c in d0["arrow"].split() and c in d0["prev"].split()]
+    ok = "hud-btn" in shared and d0["clipA"] == d0["clipC"] and "polygon" in d0["clipA"] and d0["radius"] == "0px" and d1["border"] != d0["border"] and d2["tf"] not in ("none", d0["tf"])
+    record(
+        "R3 輪播左右箭頭＝全站切角 HUD 按鈕（跟開場晶片共用 class、同一個切角、hover／按下有回饋）",
+        ok,
+        f"箭頭 class「{d0['arrow']}」、開場晶片 class「{d0['chip']}」→ 共用 {shared}；切角相同={d0['clipA'] == d0['clipC']}（{d0['clipA'][:40]}…）、圓角 {d0['radius']}；滑過：邊框 {d0['border']}→{d1['border']}；按下：transform {d2['tf']}",
+        {"before": d0, "hover": d1, "active": d2},
+    )
+    ctx.close()
+
+
+# R4 手機「331＋四宮格」一屏、「真實畫面＋說明」一屏
+def check_r4(browser, base):
+    ctx, page = new_page(browser, MOBILE, skip_boot=True)
+    page.goto(base)
+    wait_boot_settled(page)
+    center = """(sel) => { const b = document.querySelector(sel).getBoundingClientRect(); window.scrollBy(0, b.top + b.height / 2 - (52 + (innerHeight - 52) / 2)); }"""
+    geo = """() => { const t = (s, k) => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); return Math.round(b[k]); };
+                     return { recTop: t('.hive-record-head', 'top'), recBottom: t('.hive-record-more', 'bottom'), shotTop: t('.hive-shot', 'top'), capBottom: t('.hive-screen figcaption', 'bottom'),
+                              nextTop: t('#hive-a', 'top'), vh: innerHeight }; }"""
+    page.evaluate(center, "[data-testid=hive-record]")
+    page.wait_for_timeout(400)
+    a = page.evaluate(geo)
+    page.evaluate(center, "[data-testid=hive-screen]")
+    page.wait_for_timeout(400)
+    b = page.evaluate(geo)
+    ok1 = a["recTop"] >= 52 and a["recBottom"] <= a["vh"] and a["shotTop"] >= a["vh"]
+    ok2 = b["shotTop"] >= 52 and b["capBottom"] <= b["vh"] and b["recBottom"] <= 52 and b["nextTop"] >= b["vh"]
+    record(
+        "R4 手機（375）：「331＋四宮格」一屏、「真實畫面＋說明」一屏",
+        ok1 and ok2,
+        f"紀錄那屏：331～四宮格在 {a['recTop']}～{a['recBottom']}px、截圖從 {a['shotTop']}px 才開始（視窗高 {a['vh']}）；畫面那屏：截圖＋說明在 {b['shotTop']}～{b['capBottom']}px、上一屏的四宮格底在 {b['recBottom']}px、下一段 HIVE A 從 {b['nextTop']}px 才開始",
+        {"record_screen": a, "shot_screen": b},
+    )
+    ctx.close()
+
+
+# R5 HIVE A 橫條不發光（降低行銷感）
+def check_r5(browser, base):
+    ctx, page = new_page(browser, MOBILE, skip_boot=True)
+    page.goto(base)
+    wait_boot_settled(page)
+    page.evaluate("() => document.getElementById('hive-a').scrollIntoView({ block: 'start' })")
+    page.wait_for_timeout(1600)
+    d = page.evaluate(
+        """() => Array.from(document.querySelectorAll('.qa-bar')).map(b => { const i = b.querySelector('.qa-track i'); const s = getComputedStyle(i);
+                 return { which: b.dataset.which, shadow: s.boxShadow, bg: s.backgroundColor, h: Math.round(i.getBoundingClientRect().height), label: b.querySelector('.qa-bar-label').textContent }; })"""
+    )
+    ok = len(d) == 2 and all(x["shadow"] == "none" for x in d) and [x["label"] for x in d] == ["改之前 10%", "改之後 92%"]
+    record("R5 HIVE A 的 10%→92% 橫條不發光", ok, "；".join(f"{x['label']}：box-shadow={x['shadow']}、顏色 {x['bg']}、高 {x['h']}px" for x in d), d)
+    ctx.close()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", default=None)
-    ap.add_argument("--only", default=None, help="逗號分隔：2,3,4,5,6,7,8,N1(同 4),N2,N3,N4(同 N3),N5,N6,M(手機導覽第三輪),V(第四輪手機特效),9b,H(第二段全部) 或 H1..H12")
+    ap.add_argument("--only", default=None, help="逗號分隔：2,3,4,5,6,7,8,N1(同 4),N2,N3,N4(同 N3),N5,N6,M(手機導覽第三輪),V(第四輪手機特效),9b,H(第二段全部) 或 H1..H12,R(第二段修正輪) 或 R1..R5")
     args = ap.parse_args()
     only = set(args.only.split(",")) if args.only else None
     os.makedirs(SHOTS, exist_ok=True)
@@ -1721,6 +1880,16 @@ def main():
             check_h11()
         if run("H", "H12"):
             check_h12(browser, base)
+        if run("R", "R1"):
+            check_r1(browser, base)
+        if run("R", "R2"):
+            check_r2(browser, base)
+        if run("R", "R3"):
+            check_r3(browser, base)
+        if run("R", "R4"):
+            check_r4(browser, base)
+        if run("R", "R5"):
+            check_r5(browser, base)
         browser.close()
         if run("9b"):
             check_webkit(p, base)

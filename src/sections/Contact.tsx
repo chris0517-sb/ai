@@ -119,11 +119,11 @@ function Outro() {
   const getLit = useCallback(() => null, [])
 
   return (
-    <div className="outro" ref={ref} data-testid="outro" data-done={done}>
-      <div className="outro-orb">
+    <div className="contact-outro" ref={ref} data-testid="outro" data-done={done}>
+      <div className="contact-outro-orb">
         <JarvisOrb state={state} frozen={false} getLevel={getLevel} getLit={getLit} holo={false} testId="outro-orb" />
       </div>
-      <p className="outro-line" data-testid="outro-line">
+      <p className="contact-outro-line" data-testid="outro-line">
         <span className="subtitle-prompt-inline" aria-hidden="true">
           &gt;
         </span>

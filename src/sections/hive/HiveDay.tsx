@@ -382,7 +382,7 @@ export function HiveDay() {
                     <button
                       key={o.id}
                       type="button"
-                      className="hive-option"
+                      className="hud-btn hive-option"
                       data-opt={o.id}
                       data-recommended={'recommended' in o ? true : undefined}
                       data-on={picked === o.id}

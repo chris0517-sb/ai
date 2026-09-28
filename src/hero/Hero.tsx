@@ -313,7 +313,7 @@ export function Hero() {
             <button
               key={q.id}
               type="button"
-              className="chip"
+              className="chip hud-btn"
               data-active={activeId === q.id}
               data-q={q.id}
               onClick={() => ask(q)}

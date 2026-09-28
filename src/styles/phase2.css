@@ -28,6 +28,28 @@
   white-space: nowrap;
 }
 
+/* ── 全站切角 HUD 按鈕（長相跟開場晶片 .chip 完全同一組值；尺寸與排版由各自的 class 決定） ──
+   用在：開場四顆晶片、決定卡三個選項、其他作品的左右箭頭 */
+.hud-btn {
+  --cut: 10px;
+  position: relative;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+.hud-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+}
+.hud-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.hud-btn:disabled {
+  cursor: default;
+}
+
 /* ── 一天怎麼跑（釘住＋捲動） ── */
 .hive-day {
   position: relative;
@@ -35,12 +57,15 @@
   margin-inline: calc(-1 * var(--pad, 0px));
 }
 .hive-day-pin {
+  /* 蜂巢圖以外要留的高度：上下留白＋時鐘列＋框的內距＋間距＋卡片（決定卡最高約 170px） */
+  --hive-x: 370px;
   position: relative;
   height: 100svh;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 64px 16px 20px;
+  /* 手機：整組（時鐘列＋框）擺在畫面中段；位置只看視窗高、不看卡片高 → 換成決定卡時地圖不會跳 */
+  padding: max(64px, calc((100svh - 600px) / 2)) 16px 20px;
   overflow: hidden;
 }
 .hive-day-head {
@@ -57,11 +82,11 @@
   color: var(--text);
   text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
 }
+/* 手機／平板：框高跟著內容（蜂巢圖＋緊接在下緣的卡片），不硬撐滿整個畫面（美感二審：小卡片硬拉高） */
 .hive-stage {
   --cut: 16px;
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: none;
   display: flex;
   flex-direction: column;
   padding: 40px 12px 12px;
@@ -84,24 +109,20 @@
   color: var(--accent);
   z-index: 3;
 }
-/* 地圖放在「剩下的空間」裡，用容器單位算出最大的正六角蜂巢（寬高比 5 : 5.196）；
-   說明卡／決定卡的高度先保留好，切換時地圖不跳動 */
+/* 蜂巢圖：吃滿寬度，但高度要留給下面的卡片（寬高比 5 : 5.196） */
 .hive-map-box {
   position: relative;
   z-index: 1;
-  flex: 1 1 0;
-  min-height: 0;
   display: grid;
   place-items: center;
-  container-type: size;
 }
 .hive-map {
   position: relative;
-  width: min(100%, calc((100svh - 360px) * 0.962));
-  width: min(100cqw, 100cqh * 0.962);
+  width: min(100%, calc((100svh - var(--hive-x)) * 0.962));
   aspect-ratio: 5 / 5.196;
+  container-type: inline-size; /* 地圖太小時把上班時間小字收起來（說明卡裡還有） */
 }
-@container (max-width: 230px) or (max-height: 239px) {
+@container (max-width: 230px) {
   .hex-hours {
     display: none;
   }
@@ -233,12 +254,12 @@
   pointer-events: none;
   will-change: transform;
 }
+/* 說明卡／決定卡直接接在蜂巢圖下緣（間距 20px） */
 .hive-card {
   position: relative;
   z-index: 2;
   flex: none;
-  margin-top: 12px;
-  min-height: 176px;
+  margin-top: 20px;
 }
 .hive-dept-card,
 .hive-decision {
@@ -292,20 +313,16 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+/* 長相用 .hud-btn（跟開場晶片同款切角），這裡只管尺寸 */
 .hive-option {
+  display: inline-flex;
+  align-items: center;
   min-height: 40px;
   padding: 0 12px;
   font-size: 14px;
-  color: var(--text);
-  background: var(--card);
-  border: 1px solid var(--line);
-  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .hive-option[data-recommended='true'] {
   border-color: color-mix(in srgb, var(--accent) 70%, transparent);
-}
-.hive-option:hover:not(:disabled) {
-  border-color: var(--accent);
 }
 .hive-option[data-on='true'] {
   color: var(--bg);
@@ -484,24 +501,22 @@ html[data-fx='static'] .hive-shot img {
 }
 .qa-track {
   position: relative;
-  height: 14px;
+  height: 10px;
   background: var(--line-soft);
 }
+/* 美感二審：不要像成效廣告圖——不發光、顏色收斂成跟卡片混色的平面條 */
 .qa-track i {
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: var(--demo);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--demo) 50%, transparent);
+  background: color-mix(in srgb, var(--demo) 60%, var(--card));
   transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .qa-bar[data-which='before'] .qa-track i {
-  background: var(--alert);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--alert) 50%, transparent);
+  background: color-mix(in srgb, var(--alert) 62%, var(--card));
 }
 .qa-bar[data-which='after'] .qa-track i {
-  background: var(--speak);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--speak) 50%, transparent);
+  background: color-mix(in srgb, var(--speak) 55%, var(--card));
 }
 .qa-bars[data-in='true'] .qa-track i {
   width: var(--v);
@@ -698,19 +713,17 @@ html[data-motion='reduced'] .redteam-line {
   gap: 12px;
   margin-top: 16px;
 }
+/* 長相用 .hud-btn（全站同款切角按鈕，含 hover／按下回饋），這裡只管尺寸 */
 .works-arrow {
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
+  padding: 0;
   color: var(--text-2);
-  background: transparent;
-  border: 1px solid var(--line);
-  transition: color 0.2s ease, border-color 0.2s ease;
 }
 .works-arrow:hover:not(:disabled) {
   color: var(--accent);
-  border-color: var(--accent);
 }
 .works-arrow:disabled {
   opacity: 0.35;
@@ -748,14 +761,44 @@ html[data-motion='reduced'] .redteam-line {
   flex-direction: column;
   gap: 10px;
 }
+/* 七張卡的縮圖一律：同一種 HUD 切角框、16:10、同色細描邊、邊緣極淡暗角（最深 20%）。
+   圖片本身不加濾鏡、不改色（玩豆豆是品牌色），只做「填滿＋同一種對齊」的裁切。 */
 .work-visual {
+  --cut: 10px;
   position: relative;
-  min-height: 120px;
+  width: 100%;
+  aspect-ratio: 16 / 10;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid var(--line-soft);
   background: var(--bg);
+  border: 1px solid var(--line);
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+}
+.work-visual::before,
+.work-visual::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  width: var(--cut);
+  height: var(--cut);
+  pointer-events: none;
+  background: linear-gradient(to bottom left, transparent calc(50% - 1.2px), var(--line) calc(50% - 1.2px), var(--line) calc(50% + 1.2px), transparent calc(50% + 1.2px));
+}
+.work-visual::before {
+  top: -1px;
+  right: -1px;
+}
+.work-visual::after {
+  bottom: -1px;
+  left: -1px;
+}
+.work-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 58%, color-mix(in srgb, var(--bg) 20%, transparent) 100%);
 }
 .work-title {
   font-size: 18px;
@@ -908,11 +951,23 @@ html[data-fx='lite'] .viz-ocr-scan {
 .viz-ocr-drop {
   color: var(--text-2);
 }
-.viz-collage {
-  width: 100%;
+/* 有照片的縮圖：填滿整個框；每一格同一種裁切（cover、對齊上三分之一）＋同一種極細分隔線 */
+.viz-collage,
+.viz-phones {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: grid;
   gap: 6px;
   padding: 8px;
+}
+.viz-collage picture,
+.viz-phones picture {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  outline: 1px solid var(--line-soft);
 }
 .viz-collage img,
 .viz-phones img {
@@ -920,36 +975,83 @@ html[data-fx='lite'] .viz-ocr-scan {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: 50% 25%;
 }
 .viz-collage--manga {
   grid-template-columns: 1.3fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
 }
 .viz-collage--manga picture:first-child {
   grid-row: span 2;
 }
 .viz-collage--wdd {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 3fr 5fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: 'line banner' 'line card';
 }
-.viz-collage--wdd picture:first-child {
-  grid-column: span 2;
+.viz-collage--wdd picture:nth-child(1) {
+  grid-area: banner;
   aspect-ratio: 900 / 255;
 }
-.viz-collage--wdd picture:not(:first-child) {
-  aspect-ratio: 1;
-  overflow: hidden;
+.viz-collage--wdd picture:nth-child(2) {
+  grid-area: line;
+}
+.viz-collage--wdd picture:nth-child(3) {
+  grid-area: card;
 }
 .viz-phones {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   gap: 8px;
-  padding: 10px;
-}
-.viz-phones picture {
-  border: 1px solid var(--line);
 }
 
+/* 沒有照片的三張（點陣／流程／OCR 面板）跟著縮圖寬度等比放大，桌機大格子不會只剩中間一小塊 */
+.work-visual {
+  container-type: inline-size;
+}
+.viz-matrix {
+  padding: 6cqw;
+  gap: max(4px, 1.3cqw);
+}
+.viz-pipe {
+  padding: 5cqw 4cqw;
+}
+.viz-pipe-row {
+  gap: max(4px, 1cqw);
+}
+.viz-pipe-step {
+  gap: max(4px, 1cqw);
+}
+.viz-pipe-box {
+  gap: max(3px, 0.8cqw);
+  min-width: max(40px, 11cqw);
+  padding: max(6px, 1.4cqw) max(4px, 1cqw);
+  font-size: max(11px, 2.4cqw);
+}
+.viz-pipe-box svg {
+  width: max(14px, 3.4cqw);
+  height: max(14px, 3.4cqw);
+}
+.viz-gate {
+  height: max(44px, 11cqw);
+}
+.viz-gate-label {
+  margin-top: max(10px, 2.4cqw);
+  font-size: max(12px, 2.5cqw);
+}
+.viz-ocr {
+  width: min(100% - 28px, max(220px, 62cqw));
+  padding: max(10px, 2.4cqw) max(12px, 2.8cqw);
+}
+.viz-ocr-head {
+  font-size: max(12px, 2.6cqw);
+}
+.viz-ocr-tile {
+  height: max(56px, 15cqw);
+}
+.viz-ocr-row {
+  font-size: max(13px, 2.8cqw);
+}
 /* ── 04 聯絡 ── */
 .chapter--contact {
   padding-bottom: 48px;
@@ -1028,16 +1130,16 @@ html[data-fx='lite'] .viz-ocr-scan {
   color: var(--speak);
   border-color: var(--speak);
 }
-.outro {
+.contact-outro {
   margin-top: 72px;
   display: grid;
   justify-items: center;
   gap: 12px;
 }
-.outro-orb {
+.contact-outro-orb {
   width: 160px;
 }
-.outro-line {
+.contact-outro-line {
   min-height: 1.7em;
   font-size: 18px;
   line-height: 1.7;
@@ -1067,8 +1169,8 @@ html[data-fx='lite'] .viz-ocr-scan {
   }
 }
 @media (max-width: 359px) {
-  .hive-card {
-    min-height: 212px;
+  .hive-day-pin {
+    --hive-x: 418px; /* 很窄的手機：決定卡會排成三行（約 217px），蜂巢圖讓位 */
   }
   .topbar-nav {
     gap: 8px;
@@ -1085,11 +1187,27 @@ html[data-fx='lite'] .viz-ocr-scan {
   .hive-shot {
     margin-inline: 8px;
   }
+  /* 一屏一個主角（美感二審：原本一屏塞了 331、四宮格、截圖、說明四層）：
+     「331＋四個小數字」一屏、「真實畫面＋說明」一屏 */
+  .hive-record,
+  .hive-screen {
+    min-height: calc(100svh - 52px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .hive-record {
+    margin-top: 48px;
+  }
+  .hive-screen {
+    margin-top: 0;
+  }
 }
 
 /* 平板以上 */
 @media (min-width: 640px) {
   .hive-day-pin {
+    --hive-x: 380px;
     padding: 68px 32px 28px;
   }
   .hive-record-more {
@@ -1105,7 +1223,10 @@ html[data-fx='lite'] .viz-ocr-scan {
   .hive-day-pin {
     padding: 72px 56px 32px;
   }
+  /* 桌機：框吃滿釘住的畫面，左地圖右卡片（地圖用容器單位算最大尺寸） */
   .hive-stage {
+    flex: 1 1 auto;
+    min-height: 0;
     flex-direction: row;
     align-items: stretch;
     justify-content: center;
@@ -1115,6 +1236,7 @@ html[data-fx='lite'] .viz-ocr-scan {
   .hive-map-box {
     flex: 0 0 56%;
     height: auto;
+    container-type: size;
   }
   .hive-map {
     width: min(100%, calc((100svh - 240px) * 0.962));

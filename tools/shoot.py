@@ -203,9 +203,10 @@ def main():
             run_tour_only(browser, base, dict(viewport={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True), 390)
             run_size(browser, base, DESKTOP, 1440)
         run_phase2(browser, base, MOBILE, 375)
+        run_phase2(browser, base, dict(viewport={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True), 390)
         run_phase2(browser, base, DESKTOP, 1440)
         browser.close()
-    need = [f"{w}-{n}.png" for w in (375, 1440) for n in P2_NAMES]
+    need = [f"{w}-{n}.png" for w in (375, 390, 1440) for n in P2_NAMES]
     if args.only != "p2":
         need += [f"{w}-{n}.png" for w in (375, 1440) for n in ("hero", "hero-speaking", "tour-1", "tour-2", "tour-3", "tour-4", "abilities", "demoA", "demoB", "demoC")]
         need += [f"390-tour-{k}.png" for k in range(1, 5)]
