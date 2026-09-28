@@ -5,7 +5,8 @@
  * 本站的改動（原始結構與互動公式保留：proximity 顏色內插、快速劃過用 InertiaPlugin 推開、點擊衝擊波、elastic 彈回）：
  * 1. 顏色改吃 token（--line-soft 系的點、--accent 的亮點），不留庫的預設紫色；內插多算 alpha。
  * 2. 不再每格都重畫：沒有游標／沒有點在動的時候迴圈會停（原版 rAF 永遠在跑，手機很耗電）。
- * 3. interactive=false（lite 級、tune 關掉）時完全不掛滑鼠事件，只在尺寸變了時畫一次靜態點陣。
+ * 3. interactive=false 時不跟游標；tapShock=true（lite：手機）時只對「點擊」打衝擊（第四輪：手機也要有反應），
+ *    兩個都關才完全不掛事件、只在尺寸變了時畫一次靜態點陣。
  * 4. 同色的點合成一條 path 一次填（原版每顆點 save/translate/fill/restore）。
  * 5. 畫布 DPR 依特效分級封頂（high 2、lite 1.5）。
  * 這層背景＝JARVIS 桌面「滑鼠互動特效」（2026-09-17 主人選的 B 能量場：游標光暈、點擊衝擊波）在網頁上的對應。
@@ -52,6 +53,8 @@ export interface DotGridProps {
   resistance?: number
   returnDuration?: number
   interactive?: boolean
+  /** 不跟游標、但點一下還是會被衝擊推開（手機） */
+  tapShock?: boolean
   dprCap?: number
   /** tune 的強調色換了要重新解析顏色 */
   colorKey?: string
@@ -72,6 +75,7 @@ export default function DotGrid({
   resistance = 750,
   returnDuration = 1.5,
   interactive = true,
+  tapShock = false,
   dprCap = 2,
   colorKey = '',
   className = '',
@@ -191,8 +195,8 @@ export default function DotGrid({
       pointerRef.current.x = -9999
       pointerRef.current.y = -9999
       draw()
-      return
     }
+    if (!interactive && !tapShock) return
     const onMove = (e: MouseEvent) => {
       const now = performance.now()
       const pr = pointerRef.current
@@ -239,6 +243,7 @@ export default function DotGrid({
       const rect = canvasRef.current!.getBoundingClientRect()
       const cx = e.clientX - rect.left
       const cy = e.clientY - rect.top
+      let moved = 0
       for (const dot of dotsRef.current) {
         const dist = Math.hypot(dot.cx - cx, dot.cy - cy)
         if (dist < shockRadius && !dot._inertiaApplied) {
@@ -247,6 +252,7 @@ export default function DotGrid({
           const falloff = Math.max(0, 1 - dist / shockRadius)
           const pushX = (dot.cx - cx) * shockStrength * falloff
           const pushY = (dot.cy - cy) * shockStrength * falloff
+          moved++
           gsap.to(dot, {
             inertia: { xOffset: pushX, yOffset: pushY, resistance },
             onComplete: () => {
@@ -256,6 +262,11 @@ export default function DotGrid({
           })
         }
       }
+      const w = wrapperRef.current
+      if (w) {
+        w.dataset.shocks = String(Number(w.dataset.shocks || 0) + 1)
+        w.dataset.moved = String(moved)
+      }
       kick(returnDuration * 1000 + 1500)
     }
     const onLeave = () => {
@@ -264,9 +275,11 @@ export default function DotGrid({
       kick(300)
     }
     const throttledMove = throttle(onMove, 50)
-    window.addEventListener('mousemove', throttledMove, { passive: true })
+    if (interactive) {
+      window.addEventListener('mousemove', throttledMove, { passive: true })
+      document.documentElement.addEventListener('mouseleave', onLeave)
+    }
     window.addEventListener('click', onClick)
-    document.documentElement.addEventListener('mouseleave', onLeave)
     return () => {
       window.removeEventListener('mousemove', throttledMove)
       window.removeEventListener('click', onClick)
@@ -274,10 +287,10 @@ export default function DotGrid({
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       rafRef.current = 0
     }
-  }, [interactive, maxSpeed, speedTrigger, proximity, resistance, returnDuration, shockRadius, shockStrength, kick, draw])
+  }, [interactive, tapShock, maxSpeed, speedTrigger, proximity, resistance, returnDuration, shockRadius, shockStrength, kick, draw])
 
   return (
-    <div ref={wrapperRef} className={`relative h-full w-full ${className}`}>
+    <div ref={wrapperRef} className={`relative h-full w-full ${className}`} data-testid="dotgrid">
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
     </div>
   )

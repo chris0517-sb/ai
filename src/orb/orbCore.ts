@@ -127,8 +127,8 @@ class ThinkNeural {
     }
   }
 
-  private proj(cx: number, cy: number, S: number, tc: number, d: [number, number, number]): [number, number, number] {
-    const rot = tc * 0.5 * 1.7 // 跟 BlobCore 思考狀態的轉速公式一樣，節點才會黏在球上
+  private proj(cx: number, cy: number, S: number, tc: number, d: [number, number, number], spin: number): [number, number, number] {
+    const rot = tc * 0.5 * 1.7 + spin // 跟 BlobCore 思考狀態的轉速公式一樣（加上手指撥轉的角度），節點才會黏在球上
     const ca = Math.cos(rot)
     const sa = Math.sin(rot)
     const cb = Math.cos(0.42)
@@ -142,7 +142,7 @@ class ThinkNeural {
     return [cx + X * R, cy - Y2 * R, Z2]
   }
 
-  paint(ctx: CanvasRenderingContext2D, cx: number, cy: number, S: number, t: number, tc: number, c: RGB, lw: number, WHITE: RGB) {
+  paint(ctx: CanvasRenderingContext2D, cx: number, cy: number, S: number, t: number, tc: number, c: RGB, lw: number, WHITE: RGB, spin = 0) {
     const key = c.join(',') + '|' + WHITE.join(',')
     if (this.key !== key) {
       this.key = key
@@ -150,7 +150,7 @@ class ThinkNeural {
       this.spW = makeSprite(WHITE, 48, 0.3, 0.55)
     }
     const N = ThinkNeural.N
-    const pts = this.dirs.map((d) => this.proj(cx, cy, S, tc, d))
+    const pts = this.dirs.map((d) => this.proj(cx, cy, S, tc, d, spin))
     const back: number[] = []
     const front: number[] = []
     for (const [x, y, z] of pts) (z <= -0.25 ? back : front).push(x, y)
@@ -301,6 +301,8 @@ export interface OrbFrame {
   lit: number | null
   /** 距上一格幾秒（頻譜平滑用） */
   dt: number
+  /** 手指／滑鼠撥轉的額外角度（弧度，第四輪加的互動；JARVIS 本尊沒有） */
+  spin?: number
 }
 
 /** 線寬倍率：至少 1 個實體像素（JARVIS 在 840 實體像素上畫 1px 線，手機球小，照比例縮會看不見） */
@@ -420,7 +422,7 @@ export class OrbPainter {
       amp = 0.15
       spd = 0.8
     }
-    const rot = t * 0.5 * spd
+    const rot = t * 0.5 * spd + (f.spin ?? 0)
     const ca = Math.cos(rot)
     const sa = Math.sin(rot)
     const cb = Math.cos(0.42)
@@ -494,7 +496,7 @@ export class OrbPainter {
         this.spectrum = st === 'speaking' ? new SpeakSpectrum() : null
       }
       ctx.save()
-      if (st === 'thinking') this.neural!.paint(ctx, cx, cy, S, t - this.fxT0, t, c, lw, f.white)
+      if (st === 'thinking') this.neural!.paint(ctx, cx, cy, S, t - this.fxT0, t, c, lw, f.white, f.spin ?? 0)
       else this.spectrum!.paint(ctx, cx, cy, t - this.fxT0, f.level, c, lw, f.dt, f.white)
       ctx.restore()
     } else {

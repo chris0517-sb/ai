@@ -5,10 +5,12 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import { setBootPhase, shouldPlayBoot } from './lib/boot'
 import { registerDebug } from './lib/debug'
+import { installErrorLog } from './lib/errors'
 import { getFx, initFx, subscribeFx } from './lib/fx'
 import { getTune, initTune, subscribeTune } from './lib/tune'
 import './styles/index.css'
 
+installErrorLog() // ?debug=1 面板要看最近 5 筆錯誤：越早裝越好
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 // 手機網址列伸縮不要觸發重算（釘住區用 svh，iOS 才不會跳）
 ScrollTrigger.config({ ignoreMobileResize: true })

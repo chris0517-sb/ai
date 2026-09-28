@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { Decrypt } from '../components/Decrypt'
 import { Corners } from '../components/hud/Corners'
 import { hero, profile, type OrbState, type Question } from '../content'
+import { shocks } from '../fx/shock'
 import { useBootPhase } from '../lib/boot'
 import { useFx } from '../lib/fx'
 import { useTune } from '../lib/tune'
@@ -15,6 +16,7 @@ const STATE_VAR: Record<OrbState, string> = {
   thinking: 'var(--think)',
   speaking: 'var(--speak)',
 }
+const STATE_TOKEN: Record<OrbState, string> = { standby: '--standby', thinking: '--think', speaking: '--speak' }
 
 /** 思考多久才開口（規格：約 0.6 秒） */
 const THINK_MS = 600
@@ -27,6 +29,8 @@ export function Hero() {
   const boot = useBootPhase()
   const isStatic = fx.level === 'static'
   const [orbState, setOrbState] = useState<OrbState>('standby')
+  const orbStateRef = useRef<OrbState>('standby')
+  orbStateRef.current = orbState
   const [activeId, setActiveId] = useState<string | null>(null)
   const [thinkingQ, setThinkingQ] = useState<string | null>(null)
   const [spoken, setSpoken] = useState<Spoken | null>(null)
@@ -106,6 +110,23 @@ export function Hero() {
     },
     [clearAll, later, speak],
   )
+
+  /**
+   * 點一下光球＝打斷她說話（JARVIS 本尊：點球體寫 interrupt.json，agent 的打斷偵測器收到就停；jarvis_ui.py:74）。
+   * 字幕停在打到的那個字、光球閃兩圈環（CoreHit，jarvis_mouse_fx.py:249）、回待命。沒在講話時點＝只閃環。
+   */
+  const interrupt = useCallback(() => {
+    const el = document.querySelector<HTMLElement>('[data-testid=orb]')
+    if (el) {
+      const r = el.getBoundingClientRect()
+      shocks.coreHit(r.left + r.width / 2, r.top + r.height / 2, r.width / 840, STATE_TOKEN[orbStateRef.current])
+    }
+    if (orbStateRef.current === 'standby') return
+    clearAll()
+    setThinkingQ(null)
+    setTypedDone(true)
+    setOrbState('standby')
+  }, [clearAll])
 
   // 開機播完（或這次不播）→ JARVIS 講開場白（JARVIS 本尊也是等開機動畫播完才說問候語）
   const introDone = useRef(false)
@@ -207,7 +228,7 @@ export function Hero() {
       </div>
 
       <div className="hero-orb">
-        <JarvisOrb state={orbState} frozen={boot === 'running'} getLevel={getLevel} getLit={getLit} />
+        <JarvisOrb state={orbState} frozen={boot === 'running'} getLevel={getLevel} getLit={getLit} onTap={interrupt} />
       </div>
 
       <div className="hero-copy">

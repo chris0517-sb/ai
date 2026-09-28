@@ -40,7 +40,17 @@ export function TopBar() {
 
   return (
     <header className="topbar" data-show={show} data-testid="topbar">
-      <a className="topbar-id" href="#top" aria-label="J.A.R.V.I.S">
+      <a
+        className="topbar-id"
+        href="#top"
+        aria-label="J.A.R.V.I.S"
+        data-testid="topbar-home"
+        onClick={(e) => {
+          // 點迷你光球＝回到頁首（開場那顆大光球）
+          e.preventDefault()
+          window.scrollTo({ top: 0, behavior: document.documentElement.dataset.motion === 'reduced' || document.documentElement.dataset.fx === 'static' ? 'auto' : 'smooth' })
+        }}
+      >
         <MiniOrb />
         <span className="topbar-label">{chapters[0].label}</span>
       </a>

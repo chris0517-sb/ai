@@ -64,9 +64,9 @@ function Caption({ i }: { i: number }) {
   )
 }
 
-function Stage({ step, stageRef, tags = true }: { step: number; stageRef?: Ref<HTMLDivElement>; tags?: boolean }) {
+function Stage({ step, stageRef, tags = true, layer }: { step: number; stageRef?: Ref<HTMLDivElement>; tags?: boolean; layer?: number }) {
   return (
-    <div className="tour-stage" ref={stageRef} data-testid="tour-stage">
+    <div className="tour-stage" ref={stageRef} data-testid="tour-stage" data-layer={layer}>
       <picture>
         <source srcSet={base + T.image.webp} type="image/webp" />
         <img src={base + T.image.jpg} width={IW} height={IH} alt={T.image.alt} decoding="async" draggable={false} />
@@ -114,12 +114,13 @@ function CaptionPlate({ step }: { step: number }) {
 }
 
 /** 導覽：真實畫面拆解——GSAP 釘住＋分段縮放，4 步，捲動驅動 */
-function TourPinned() {
+function TourPinned({ reduced }: { reduced: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const pinRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const panRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
+  const layerRefs = useRef<(HTMLDivElement | null)[]>([])
   const [step, setStep] = useState(0)
   const [panning, setPanning] = useState(false)
   const stepRef = useRef(0)
@@ -127,25 +128,31 @@ function TourPinned() {
   useGSAP(
     () => {
       const frame = frameRef.current!
-      const stage = stageRef.current!
       const pan = panRef.current!
+      const layers = reduced ? layerRefs.current.slice(0, T.steps.length).filter((el): el is HTMLDivElement => !!el) : []
+      const stage = reduced ? layers[0] : stageRef.current!
       const dims = () => ({ fw: frame.clientWidth, fh: frame.clientHeight })
+      const v = (i: number) => viewFor(i, dims().fw, dims().fh)
       const sizeStage = () => {
         const { fw } = dims()
-        stage.style.width = `${fw}px`
-        stage.style.height = `${(fw * IH) / IW}px`
+        for (const el of reduced ? layers : [stage]) {
+          el.style.width = `${fw}px`
+          el.style.height = `${(fw * IH) / IW}px`
+        }
+        // 交叉淡入版：每一層固定在自己那一步的鏡頭上（不動畫縮放）
+        if (reduced) layers.forEach((el, k) => gsap.set(el, { transformOrigin: '0 0', ...v(k) }))
       }
       sizeStage()
-      // 第一步的橫移鏡頭振幅（直式框才有）；尺寸變了（onRefreshInit）就重算
-      let range = panRange(dims().fw, dims().fh)
+      // 第一步的橫移鏡頭振幅（直式框才有；減少動態效果時不橫移）；尺寸變了（onRefreshInit）就重算
+      let range = reduced ? 0 : panRange(dims().fw, dims().fh)
       setPanning(range > 0)
       const onRefreshInit = () => {
         sizeStage()
-        range = panRange(dims().fw, dims().fh)
+        range = reduced ? 0 : panRange(dims().fw, dims().fh)
         setPanning(range > 0)
       }
-      const v = (i: number) => viewFor(i, dims().fw, dims().fh)
-      gsap.set(stage, { transformOrigin: '0 0', ...v(0) })
+      if (reduced) layers.forEach((el, k) => gsap.set(el, { opacity: k === 0 ? 1 : 0 }))
+      else gsap.set(stage, { transformOrigin: '0 0', ...v(0) })
       const tl = gsap.timeline({
         defaults: { ease: 'power2.inOut', duration: 1 },
         scrollTrigger: {
@@ -171,11 +178,17 @@ function TourPinned() {
       })
       tl.addLabel('s0')
       for (let i = 1; i < T.steps.length; i++) {
-        tl.fromTo(
-          stage,
-          { x: () => v(i - 1).x, y: () => v(i - 1).y, scale: () => v(i - 1).scale },
-          { x: () => v(i).x, y: () => v(i).y, scale: () => v(i).scale, immediateRender: false },
-        ).addLabel(`s${i}`)
+        if (reduced) {
+          tl.fromTo(layers[i - 1], { opacity: 1 }, { opacity: 0, immediateRender: false })
+            .fromTo(layers[i], { opacity: 0 }, { opacity: 1, immediateRender: false }, '<')
+            .addLabel(`s${i}`)
+        } else {
+          tl.fromTo(
+            stage,
+            { x: () => v(i - 1).x, y: () => v(i - 1).y, scale: () => v(i - 1).scale },
+            { x: () => v(i).x, y: () => v(i).y, scale: () => v(i).scale, immediateRender: false },
+          ).addLabel(`s${i}`)
+        }
       }
       const st = tl.scrollTrigger!
 
@@ -226,7 +239,13 @@ function TourPinned() {
         </div>
         <div className="tour-frame" ref={frameRef} data-testid="tour-frame">
           <div className="tour-pan" ref={panRef}>
-            <Stage step={step} stageRef={stageRef} tags={!panning} />
+            {reduced ? (
+              T.steps.map((_, k) => (
+                <Stage key={k} step={k} layer={k} stageRef={(el) => void (layerRefs.current[k] = el)} tags={!panning} />
+              ))
+            ) : (
+              <Stage step={step} stageRef={stageRef} tags={!panning} />
+            )}
           </div>
           <Corners />
         </div>
@@ -261,12 +280,13 @@ function useMedia(query: string) {
  * - 下：第一步是 HUD 圖例（02／03／04 大編號＋細引線連到圖上的框）；放大步驟是小地圖（整張圖＋目前這一區的框）＋編號。
  *   兩塊都是真內容，框裡不會留一大片黑。
  */
-function TourPinnedMobile() {
+function TourPinnedMobile({ reduced }: { reduced: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const pinRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
+  const layerRefs = useRef<(HTMLDivElement | null)[]>([])
   const legendRef = useRef<HTMLDivElement>(null)
   const linesRef = useRef<SVGSVGElement>(null)
   const zoomRef = useRef<HTMLDivElement>(null)
@@ -279,7 +299,8 @@ function TourPinnedMobile() {
     () => {
       const frame = frameRef.current!
       const view = viewRef.current!
-      const stage = stageRef.current!
+      const layers = reduced ? layerRefs.current.slice(0, T.steps.length).filter((el): el is HTMLDivElement => !!el) : []
+      const stage = reduced ? layers[0] : stageRef.current!
       const W = () => frame.clientWidth
       const F = () => frame.clientHeight
       const viewH = (i: number) => {
@@ -290,12 +311,16 @@ function TourPinnedMobile() {
       }
       const cam = (i: number): View => (i === 0 ? { x: 0, y: 0, scale: 1 } : viewFor(i, W(), viewH(i), 0.92))
       const sizeStage = () => {
-        stage.style.width = `${W()}px`
-        stage.style.height = `${(W() * IH) / IW}px`
+        for (const el of reduced ? layers : [stage]) {
+          el.style.width = `${W()}px`
+          el.style.height = `${(W() * IH) / IW}px`
+        }
+        if (reduced) layers.forEach((el, k) => gsap.set(el, { transformOrigin: '0 0', ...cam(k) }))
       }
       sizeStage()
       gsap.set(view, { height: viewH(0) })
-      gsap.set(stage, { transformOrigin: '0 0', ...cam(0) })
+      if (reduced) layers.forEach((el, k) => gsap.set(el, { opacity: k === 0 ? 1 : 0 }))
+      else gsap.set(stage, { transformOrigin: '0 0', ...cam(0) })
 
       const n = T.steps.length - 1
       let tlRef: gsap.core.Timeline | null = null
@@ -385,13 +410,21 @@ function TourPinnedMobile() {
       tlRef = tl
       tl.addLabel('s0')
       for (let i = 1; i <= n; i++) {
-        tl.fromTo(
-          stage,
-          { x: () => cam(i - 1).x, y: () => cam(i - 1).y, scale: () => cam(i - 1).scale },
-          { x: () => cam(i).x, y: () => cam(i).y, scale: () => cam(i).scale, immediateRender: false },
-        )
-          .fromTo(view, { height: () => viewH(i - 1) }, { height: () => viewH(i), immediateRender: false }, '<')
-          .addLabel(`s${i}`)
+        if (reduced) {
+          // 減少動態效果：鏡頭不縮放，兩步之間交叉淡入（框的上下分界照樣移到位）
+          tl.fromTo(layers[i - 1], { opacity: 1 }, { opacity: 0, immediateRender: false })
+            .fromTo(layers[i], { opacity: 0 }, { opacity: 1, immediateRender: false }, '<')
+            .fromTo(view, { height: () => viewH(i - 1) }, { height: () => viewH(i), immediateRender: false }, '<')
+            .addLabel(`s${i}`)
+        } else {
+          tl.fromTo(
+            stage,
+            { x: () => cam(i - 1).x, y: () => cam(i - 1).y, scale: () => cam(i - 1).scale },
+            { x: () => cam(i).x, y: () => cam(i).y, scale: () => cam(i).scale, immediateRender: false },
+          )
+            .fromTo(view, { height: () => viewH(i - 1) }, { height: () => viewH(i), immediateRender: false }, '<')
+            .addLabel(`s${i}`)
+        }
       }
       const st = tl.scrollTrigger!
       layout()
@@ -425,7 +458,11 @@ function TourPinnedMobile() {
         </div>
         <div className="tour-frame" ref={frameRef} data-testid="tour-frame">
           <div className="tour-view" ref={viewRef} data-testid="tour-view">
-            <Stage step={step} stageRef={stageRef} tags={false} />
+            {reduced ? (
+              T.steps.map((_, k) => <Stage key={k} step={k} layer={k} stageRef={(el) => void (layerRefs.current[k] = el)} tags={false} />)
+            ) : (
+              <Stage step={step} stageRef={stageRef} tags={false} />
+            )}
           </div>
           <div className="tour-info" data-testid="tour-info">
             <div className="tour-zoominfo" ref={zoomRef} aria-hidden={step === 0}>
@@ -536,5 +573,8 @@ export function Tour() {
 /** 手機（≤767px）用手機版；平板、桌機維持原本的版本 */
 function TourPinnedChooser() {
   const mobile = useMedia(MOBILE_Q)
-  return mobile ? <TourPinnedMobile key="m" /> : <TourPinned key="d" />
+  const fx = useFx()
+  const reduced = fx.motion === 'reduced'
+  // 換版型或「減少動態效果」切換 → 整個重建（GSAP 的時間軸跟著換）
+  return mobile ? <TourPinnedMobile key={`m-${reduced}`} reduced={reduced} /> : <TourPinned key={`d-${reduced}`} reduced={reduced} />
 }

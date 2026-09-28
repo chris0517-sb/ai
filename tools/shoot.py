@@ -71,9 +71,9 @@ def run_size(browser, base, opts, w):
     wait_boot_settled(page)
     page.evaluate("document.fonts.ready")
 
-    # 3) Hero 說話中：點「你會闖禍嗎？」後 1.5 秒
+    # 3) Hero 說話中：點「你犯過最大的錯？」（原規格的「你會闖禍嗎？」，第四輪主人換了題目）後 1.5 秒
     page.wait_for_timeout(600)
-    page.locator(".chip[data-q=risk]").click()
+    page.locator(".chip[data-q=mistake]").click()
     page.wait_for_timeout(1500)
     shot(page, f"{w}-hero-speaking.png")
 

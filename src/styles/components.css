@@ -1761,3 +1761,117 @@ html[data-fx='lite'] .mini-orb[data-state='standby'] * {
     margin-inline: 8px; /* 角標在外面 8px → 剛好離視窗邊緣 16px */
   }
 }
+
+/* ─────────────────────────── 第四輪：能量衝擊波、撥轉光球、檢查面板 ─────────────────────────── */
+.shock-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+.shock-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* 觸點上的亮點（衝擊波的起點；JARVIS 的波從半徑 30 開始往外掃） */
+.shock-dot {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--holo-core) 0 8%, color-mix(in srgb, var(--accent) 70%, transparent) 20%, transparent 70%);
+  animation: shock-dot 0.6s ease-out forwards;
+}
+@keyframes shock-dot {
+  from { transform: scale(0.35); opacity: 1; }
+  to { transform: scale(1.6); opacity: 0; }
+}
+/* 被波掃到的卡片：沿著自己的框亮一圈（jarvis_mouse_fx.py:219 hit_card 的網頁版） */
+.is-swept {
+  animation: swept 0.55s ease-out 1;
+}
+@keyframes swept {
+  0% { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--holo-core) 85%, transparent), inset 0 0 26px color-mix(in srgb, var(--accent) 38%, transparent); }
+  100% { box-shadow: inset 0 0 0 1.5px transparent, inset 0 0 26px transparent; }
+}
+/* 開場光球：左右撥可以轉（直向滑動照樣捲頁），點一下打斷她說話 */
+.orb {
+  touch-action: pan-y;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.orb:active {
+  cursor: grabbing;
+}
+.topbar-id {
+  cursor: pointer;
+}
+
+/* ?debug=1 檢查面板 */
+.debug-panel {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  z-index: 95;
+  width: min(340px, calc(100vw - 16px));
+  max-height: 60svh;
+  overflow: auto;
+  padding: 8px 10px 10px;
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  border: 1px solid var(--warn);
+}
+.debug-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  color: var(--warn);
+  letter-spacing: 0.2em;
+}
+.debug-head button,
+.debug-fab {
+  min-width: 32px;
+  min-height: 28px;
+  font-family: var(--ff-mono);
+  color: var(--warn);
+  background: var(--bg);
+  border: 1px solid var(--warn);
+}
+.debug-fab {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  z-index: 95;
+  padding: 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+}
+.debug-panel dl {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+.debug-panel dl > div {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 8px;
+}
+.debug-panel dt {
+  color: var(--text-3);
+}
+.debug-panel dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+.debug-err {
+  display: block;
+  color: var(--alert);
+}

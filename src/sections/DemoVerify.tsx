@@ -74,7 +74,7 @@ export function DemoVerify() {
   const sel = byId[selected]
 
   return (
-    <article className="demo demo-b" data-testid="demo-b" style={{ '--demo': 'var(--warn)' } as CSSProperties}>
+    <article id="demo-verify" className="demo demo-b" data-testid="demo-b" style={{ '--demo': 'var(--warn)' } as CSSProperties}>
       <header className="demo-head">
         <p className="demo-tag">
           <i className="demo-lamp" aria-hidden="true" />
